@@ -36,7 +36,7 @@ const DingtalkConfigSchema = z.object({
 const AgentConfigSchema = z.object({
   defaultModel: z.string().default("deepseek-chat"),
   defaultProvider: z.enum([
-    "deepseek", "minimax", "kimi", "stepfun", "modelscope",
+    "deepseek", "minimax", "kimi", "stepfun", "modelscope", "dashscope", "zhipu",
     "openai", "ollama", "openrouter", "together", "groq",
     "custom-openai", "custom-anthropic"
   ]).default("deepseek"),
@@ -114,10 +114,22 @@ function loadConfigFromEnv(): Partial<MoziConfig> {
     providers.stepfun = { apiKey: stepfunKey };
   }
 
-  // ModelScope (支持 MODELSCOPE_API_KEY 或 DASHSCOPE_API_KEY)
-  const modelscopeKey = getEnvVar("MODELSCOPE_API_KEY") || getEnvVar("DASHSCOPE_API_KEY");
+  // ModelScope (支持 MODELSCOPE_API_KEY)
+  const modelscopeKey = getEnvVar("MODELSCOPE_API_KEY");
   if (modelscopeKey) {
     providers.modelscope = { apiKey: modelscopeKey };
+  }
+
+  // DashScope (阿里云灵积)
+  const dashscopeKey = getEnvVar("DASHSCOPE_API_KEY");
+  if (dashscopeKey) {
+    providers.dashscope = { apiKey: dashscopeKey };
+  }
+
+  // 智谱 AI
+  const zhipuKey = getEnvVar("ZHIPU_API_KEY");
+  if (zhipuKey) {
+    providers.zhipu = { apiKey: zhipuKey };
   }
 
   // OpenAI

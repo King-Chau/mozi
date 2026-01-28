@@ -15,6 +15,63 @@ const ZHIPU_BASE_URL = "https://open.bigmodel.cn/api/paas/v4";
 
 /** 智谱 AI 模型定义 */
 const ZHIPU_MODELS: ModelDefinition[] = [
+  // GLM 最新系列 (2025)
+  {
+    id: "glm-4.7",
+    name: "GLM-4.7",
+    provider: "zhipu",
+    api: "openai-compatible",
+    contextWindow: 128000,
+    maxTokens: 8192,
+    supportsVision: false,
+    supportsReasoning: false,
+    cost: {
+      input: 50,
+      output: 50,
+    },
+  },
+  {
+    id: "glm-4.6",
+    name: "GLM-4.6",
+    provider: "zhipu",
+    api: "openai-compatible",
+    contextWindow: 128000,
+    maxTokens: 8192,
+    supportsVision: false,
+    supportsReasoning: false,
+    cost: {
+      input: 50,
+      output: 50,
+    },
+  },
+  {
+    id: "glm-4.5",
+    name: "GLM-4.5",
+    provider: "zhipu",
+    api: "openai-compatible",
+    contextWindow: 128000,
+    maxTokens: 8192,
+    supportsVision: false,
+    supportsReasoning: false,
+    cost: {
+      input: 50,
+      output: 50,
+    },
+  },
+  {
+    id: "glm-4.5-air",
+    name: "GLM-4.5 Air",
+    provider: "zhipu",
+    api: "openai-compatible",
+    contextWindow: 128000,
+    maxTokens: 8192,
+    supportsVision: false,
+    supportsReasoning: false,
+    cost: {
+      input: 1,
+      output: 1,
+    },
+  },
   // GLM-4 系列
   {
     id: "glm-4-plus",
