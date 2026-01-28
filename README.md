@@ -255,7 +255,7 @@ npm run build
 
 ## 致谢
 
-本项目架构设计参考了 [Claude Code](https://github.com/anthropics/claude-code)。
+本项目架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)。
 
 ## License
 
