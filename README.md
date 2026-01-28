@@ -11,6 +11,7 @@ Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，�
 | 特性 | Mozi | Moltbot |
 |------|------|---------|
 | **定位** | 国产生态优先的轻量框架 | 全功能个人 AI 助手 |
+| **代码量** | ~16,000 行 (64 文件) | ~516,000 行 (3,137 文件) |
 | **国产模型** | ✅ DeepSeek、Qwen、Kimi、阶跃星辰、MiniMax | ❌ 仅 Anthropic、OpenAI |
 | **国产通讯** | ✅ 飞书、钉钉原生支持 | ❌ WhatsApp、Telegram、Slack 等海外平台 |
 | **部署复杂度** | 简单，npm install 即可 | 复杂，需要配置多个系统权限 |
@@ -18,6 +19,8 @@ Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，�
 | **上手门槛** | 低，配置一个 API Key 即可使用 | 高，需要配置 OAuth、TCC 权限等 |
 | **资源占用** | 轻量 | 较重（菜单栏应用、语音唤醒等） |
 | **适用场景** | 企业内部机器人、国内团队协作 | 个人多设备助手、海外平台集成 |
+
+> **Mozi 用 3% 的代码量实现了核心功能**，专注简洁高效，易于理解和二次开发。
 
 ### 选择 Mozi 的理由
 
