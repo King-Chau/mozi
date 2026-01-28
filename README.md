@@ -281,6 +281,10 @@ const response = await provider.chat({
 console.log(response.content);
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=King-Chau/mozi&type=Date)](https://star-history.com/#King-Chau/mozi&Date)
+
 ## 开发
 
 ```bash
