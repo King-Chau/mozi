@@ -18,30 +18,30 @@
 
 ### 🤖 支持的模型提供商
 
-**国产模型**:
-| 提供商 | 模型 | 特性 |
-|--------|------|------|
-| **ModelScope** | Qwen2.5-Coder-32B, Qwen3-235B-A22B, QwQ-32B 等 | 阿里云魔搭社区，免费额度，推理能力强 |
-| **DeepSeek** | deepseek-chat, deepseek-reasoner | 推理能力强、性价比高 |
-| **Kimi (Moonshot)** | moonshot-v1-8k/32k/128k, kimi-latest | 长上下文、视觉能力 |
-| **阶跃星辰 (Stepfun)** | step-1-8k/32k/128k/256k, step-1v, step-2 | 超长上下文、多模态 |
-| **MiniMax** | abab6.5s/g/t-chat, MiniMax-Text-01, MiniMax-VL-01 | 语音、视觉能力 |
+**国产模型提供商**:
+| 提供商 | 说明 |
+|--------|------|
+| **ModelScope** | 阿里云魔搭社区，免费额度，Qwen 系列模型 |
+| **DeepSeek** | 推理能力强、性价比高 |
+| **Kimi (Moonshot)** | 长上下文、视觉能力 |
+| **阶跃星辰 (Stepfun)** | 超长上下文、多模态 |
+| **MiniMax** | 语音、视觉能力 |
 
-**OpenAI 兼容格式** (可自定义 API 地址、模型、API Key):
-| 提供商 | 模型 | 特性 |
-|--------|------|------|
-| **OpenAI** | GPT-4o, GPT-4 Turbo, o1 等 | 官方 API |
-| **Ollama** | Llama3, Qwen2.5-Coder, DeepSeek-R1 等 | 本地部署 |
-| **OpenRouter** | Claude, GPT-4, Gemini 等 | 多模型聚合 |
-| **Together AI** | Llama, Qwen, DeepSeek 等 | 高性能推理 |
-| **Groq** | Llama, Mixtral 等 | 超快推理 |
-| **自定义** | 任意兼容模型 | 完全自定义 |
+**OpenAI 兼容格式** (可自定义 API 地址):
+| 提供商 | 说明 |
+|--------|------|
+| **OpenAI** | 官方 API |
+| **Ollama** | 本地部署 |
+| **OpenRouter** | 多模型聚合 |
+| **Together AI** | 高性能推理 |
+| **Groq** | 超快推理 |
+| **自定义** | 任意 OpenAI 兼容 API |
 
-**Anthropic 兼容格式** (可自定义 API 地址、模型、API Key):
-| 提供商 | 模型 | 特性 |
-|--------|------|------|
-| **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus 等 | 官方 API |
-| **自定义** | 任意兼容模型 | 完全自定义 |
+**Anthropic 兼容格式** (可自定义 API 地址):
+| 提供商 | 说明 |
+|--------|------|
+| **Anthropic** | Claude 官方 API |
+| **自定义** | 任意 Anthropic 兼容 API |
 
 ### 📱 支持的通讯平台
 
