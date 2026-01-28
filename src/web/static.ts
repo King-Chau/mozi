@@ -472,6 +472,15 @@ function getEmbeddedHtml(config: MoziConfig): string {
 
     async function createNewChat() {
       if (isStreaming) return;
+      // 通知服务器创建新会话，清除 Agent 上下文
+      try {
+        const result = await request('chat.clear');
+        // 不保存返回的 sessionKey 到 localStorage
+        // 这样 UI 会显示欢迎页面，而非立即绑定新会话
+      } catch (e) {
+        // 如果当前没有 session（服务器端），忽略错误
+        console.log('Create new chat:', e.message);
+      }
       localStorage.removeItem(STORAGE_KEY);
       clearMessagesUI();
       showWelcome();

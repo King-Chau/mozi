@@ -206,7 +206,14 @@ export class WsServer {
     const messageId = generateId("msg");
     const store = getSessionStore();
 
-    logger.debug({ clientId: client.id, message: message.slice(0, 100) }, "Chat send");
+    // 构造消息上下文
+    // 使用 sessionKey 作为 senderId，确保会话恢复后 Agent 能找到历史上下文
+    const stableSenderId = client.sessionKey!.replace("webchat:", "");
+
+    logger.debug(
+      { clientId: client.id, sessionKey: client.sessionKey, stableSenderId, message: message.slice(0, 100) },
+      "Chat send"
+    );
 
     // 保存用户消息到 transcript
     const userMessage: TranscriptMessage = {
@@ -217,9 +224,6 @@ export class WsServer {
     };
     await store.appendTranscript(client.sessionId!, client.sessionKey!, userMessage);
 
-    // 构造消息上下文
-    // 使用 sessionKey 作为 senderId，确保会话恢复后 Agent 能找到历史上下文
-    const stableSenderId = client.sessionKey!.replace("webchat:", "");
     const context = {
       channelId: "webchat" as const,
       chatId: client.sessionKey!,
@@ -277,30 +281,23 @@ export class WsServer {
     await this.ensureSession(client);
 
     const store = getSessionStore();
+    const oldSessionKey = client.sessionKey!;
 
     // 重置会话
     const newSession = await store.reset(client.sessionKey!);
 
-    // 更新客户端会话 ID
+    // 更新客户端会话 ID 和 sessionKey
+    client.sessionKey = newSession.sessionKey;
     client.sessionId = newSession.sessionId;
 
-    // 清除 Agent 中的会话
-    const context = {
-      channelId: "webchat" as const,
-      chatId: client.sessionKey!,
-      messageId: generateId("msg"),
-      senderId: client.id,
-      senderName: "WebChat User",
-      content: "",
-      chatType: "direct" as const,
-      timestamp: Date.now(),
-    };
-
-    this.agent.clearSession(context);
+    logger.info(
+      { clientId: client.id, oldSessionKey, newSessionKey: newSession.sessionKey, newSessionId: newSession.sessionId },
+      "Chat cleared, new session created"
+    );
 
     return {
       success: true,
-      sessionKey: client.sessionKey!,
+      sessionKey: newSession.sessionKey,
       sessionId: newSession.sessionId,
     };
   }

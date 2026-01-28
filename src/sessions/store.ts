@@ -8,6 +8,7 @@ import * as path from "path";
 import * as os from "os";
 import { randomUUID } from "crypto";
 import { getChildLogger } from "../utils/logger.js";
+import { generateId } from "../utils/index.js";
 import type {
   SessionEntry,
   SessionListItem,
@@ -158,17 +159,23 @@ export class FileSessionStore {
     }
   }
 
-  /** 重置会话 */
+  /** 重置会话（创建新会话） */
   async reset(sessionKey: string): Promise<SessionEntry> {
     const index = await this.loadIndex();
     const existing = index.get(sessionKey);
     const now = Date.now();
 
+    // 从旧 sessionKey 提取 channel 前缀（如 "webchat:"）
+    const channelPrefix = sessionKey.includes(":") ? sessionKey.split(":")[0] + ":" : "";
+
+    // 生成新的 sessionKey
+    const newSessionKey = `${channelPrefix}${generateId("session")}`;
+
     // 创建新会话
     const newEntry: SessionEntry = {
       sessionId: randomUUID(),
-      sessionKey,
-      label: existing?.label,
+      sessionKey: newSessionKey,
+      label: undefined,  // 新会话不继承 label
       createdAt: now,
       updatedAt: now,
       channel: existing?.channel,
@@ -180,19 +187,12 @@ export class FileSessionStore {
       totalTokens: 0,
     };
 
-    // 归档旧转录
-    if (existing) {
-      const oldTranscript = this.getTranscriptPath(existing.sessionId);
-      if (fs.existsSync(oldTranscript)) {
-        const archivePath = `${oldTranscript}.reset.${Date.now()}`;
-        await fs.promises.rename(oldTranscript, archivePath);
-      }
-    }
-
-    index.set(sessionKey, newEntry);
+    // 保留旧会话（不删除）
+    // 添加新会话到索引
+    index.set(newSessionKey, newEntry);
     await this.saveIndex(index);
 
-    logger.info({ sessionKey, sessionId: newEntry.sessionId }, "Session reset");
+    logger.info({ oldSessionKey: sessionKey, newSessionKey, sessionId: newEntry.sessionId }, "New session created");
     return newEntry;
   }
 
