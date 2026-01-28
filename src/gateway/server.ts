@@ -24,6 +24,10 @@ export class Gateway {
   private feishuChannel?: FeishuChannel;
   private dingtalkChannel?: DingtalkChannel;
   private wsServer?: WsServer;
+  /** 已处理的消息 ID 缓存（用于去重） */
+  private processedMessages = new Map<string, number>();
+  /** 消息缓存过期时间 (5分钟) */
+  private readonly MESSAGE_CACHE_TTL = 5 * 60 * 1000;
 
   constructor(config: MoziConfig) {
     this.config = config;
@@ -94,6 +98,12 @@ export class Gateway {
 
   /** 处理入站消息 */
   private async handleMessage(context: InboundMessageContext): Promise<void> {
+    // 消息去重检查
+    if (this.isDuplicateMessage(context.messageId)) {
+      logger.debug({ messageId: context.messageId }, "Skipping duplicate message");
+      return;
+    }
+
     logger.info(
       {
         channel: context.channelId,
@@ -149,6 +159,27 @@ export class Gateway {
         }
         break;
     }
+  }
+
+  /** 检查是否为重复消息 */
+  private isDuplicateMessage(messageId: string): boolean {
+    const now = Date.now();
+
+    // 清理过期的消息缓存
+    for (const [id, timestamp] of this.processedMessages) {
+      if (now - timestamp > this.MESSAGE_CACHE_TTL) {
+        this.processedMessages.delete(id);
+      }
+    }
+
+    // 检查消息是否已处理
+    if (this.processedMessages.has(messageId)) {
+      return true;
+    }
+
+    // 标记为已处理
+    this.processedMessages.set(messageId, now);
+    return false;
   }
 
   /** 初始化 */

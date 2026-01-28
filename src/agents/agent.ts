@@ -661,10 +661,94 @@ export class Agent {
 
     messages.push({ role: "system", content: systemContent });
 
+    // 验证并清理历史消息，确保 tool_calls 和 tool 消息配对
+    const validatedMessages = this.validateToolCallPairs(history.messages);
+
     // 添加历史消息
-    messages.push(...history.messages);
+    messages.push(...validatedMessages);
 
     return messages;
+  }
+
+  /** 验证 tool_calls 和 tool 消息配对，清理不完整的工具调用 */
+  private validateToolCallPairs(messages: ChatMessage[]): ChatMessage[] {
+    // 第一遍：收集所有有效的 tool_call_id
+    const validToolCallIds = new Set<string>();
+    for (const msg of messages) {
+      if (msg.role === "assistant" && msg.tool_calls) {
+        for (const tc of msg.tool_calls) {
+          validToolCallIds.add(tc.id);
+        }
+      }
+    }
+
+    const result: ChatMessage[] = [];
+    let i = 0;
+
+    while (i < messages.length) {
+      const msg = messages[i]!;
+
+      // 如果是 tool 消息，检查是否有对应的 tool_call
+      if (msg.role === "tool") {
+        if (msg.tool_call_id && validToolCallIds.has(msg.tool_call_id)) {
+          result.push(msg);
+        } else {
+          // 孤立的 tool_result，跳过
+          logger.warn(
+            { orphanToolCallId: msg.tool_call_id, messageIndex: i },
+            "Skipping orphan tool_result message"
+          );
+        }
+        i++;
+        continue;
+      }
+
+      // 如果是包含 tool_calls 的 assistant 消息
+      if (msg.role === "assistant" && msg.tool_calls && msg.tool_calls.length > 0) {
+        const toolCallIds = new Set(msg.tool_calls.map(tc => tc.id));
+        const toolResults: ChatMessage[] = [];
+
+        // 查找后续的 tool 消息
+        let j = i + 1;
+        while (j < messages.length && messages[j]?.role === "tool") {
+          const toolMsg = messages[j]!;
+          if (toolMsg.tool_call_id && toolCallIds.has(toolMsg.tool_call_id)) {
+            toolResults.push(toolMsg);
+            toolCallIds.delete(toolMsg.tool_call_id);
+          }
+          j++;
+        }
+
+        // 检查是否所有 tool_calls 都有对应的 tool 结果
+        if (toolCallIds.size === 0) {
+          // 完整配对，添加 assistant 和所有 tool 消息
+          result.push(msg);
+          result.push(...toolResults);
+        } else {
+          // 不完整的工具调用，跳过整个 assistant 消息和相关 tool 消息
+          logger.warn(
+            { missingToolResults: Array.from(toolCallIds), messageIndex: i },
+            "Skipping incomplete tool call sequence"
+          );
+          // 如果 assistant 消息有文本内容，保留文本内容但移除 tool_calls
+          if (msg.content) {
+            result.push({
+              role: "assistant",
+              content: msg.content,
+            });
+          }
+        }
+
+        // 跳到 tool 消息之后
+        i = j;
+      } else {
+        // 普通消息直接添加
+        result.push(msg);
+        i++;
+      }
+    }
+
+    return result;
   }
 
   /** 裁剪历史消息 */
