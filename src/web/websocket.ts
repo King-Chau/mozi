@@ -218,11 +218,13 @@ export class WsServer {
     await store.appendTranscript(client.sessionId!, client.sessionKey!, userMessage);
 
     // 构造消息上下文
+    // 使用 sessionKey 作为 senderId，确保会话恢复后 Agent 能找到历史上下文
+    const stableSenderId = client.sessionKey!.replace("webchat:", "");
     const context = {
       channelId: "webchat" as const,
       chatId: client.sessionKey!,
       messageId,
-      senderId: client.id,
+      senderId: stableSenderId,
       senderName: "WebChat User",
       content: message,
       chatType: "direct" as const,
@@ -361,6 +363,18 @@ export class WsServer {
 
     // 加载历史消息
     const messages = await store.loadTranscript(session.sessionId);
+
+    // 恢复 Agent 的会话上下文
+    // Agent 使用 "webchat:{senderId}" 作为 sessionKey，对于 direct chat
+    // senderId 从 sessionKey 中提取（去掉 "webchat:" 前缀）
+    const agentSessionKey = session.sessionKey; // webchat:session_xxx
+    const transcriptMessages = messages
+      .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content as string }));
+
+    if (transcriptMessages.length > 0) {
+      this.agent.restoreSessionFromTranscript(agentSessionKey, transcriptMessages);
+    }
 
     return {
       sessionKey: session.sessionKey,

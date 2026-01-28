@@ -841,6 +841,34 @@ export class Agent {
       lastUpdate: new Date(history.lastUpdate),
     };
   }
+
+  /** 恢复会话历史（从 transcript 消息重建 Agent 上下文） */
+  restoreSessionFromTranscript(
+    sessionKey: string,
+    messages: Array<{ role: "user" | "assistant"; content: string }>
+  ): void {
+    // 检查是否已有会话（如果服务没有重启，可能还在内存中）
+    const existing = this.options.sessionStore.get(sessionKey);
+    if (existing && existing.messages.length > 0) {
+      logger.debug({ sessionKey, messageCount: existing.messages.length }, "Session already exists, skipping restore");
+      return;
+    }
+
+    // 将 transcript 消息转换为 ChatMessage 格式
+    const chatMessages: ChatMessage[] = messages.map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+
+    // 保存到 sessionStore
+    const sessionData: SessionData = {
+      messages: chatMessages,
+      lastUpdate: Date.now(),
+      totalTokensUsed: 0,
+    };
+    this.options.sessionStore.set(sessionKey, sessionData);
+    logger.debug({ sessionKey, messageCount: chatMessages.length }, "Session restored from transcript");
+  }
 }
 
 /** 创建 Agent */
