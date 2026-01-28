@@ -256,9 +256,3 @@ npm run build
 ## License
 
 MIT
-
----
-
-<p align="center">
-  <sub>墨子 — 兼爱非攻，智慧助人</sub>
-</p>
