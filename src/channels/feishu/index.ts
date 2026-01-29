@@ -1,9 +1,7 @@
 /**
  * 飞书通道适配器
  *
- * 支持两种连接模式：
- * - webhook: 传统 HTTP 回调模式，需要公网部署
- * - websocket: WebSocket 长连接模式，无需公网部署
+ * 使用 WebSocket 长连接模式，无需公网部署
  */
 
 import { Router, type Request, type Response } from "express";
@@ -62,8 +60,7 @@ export class FeishuChannel extends BaseChannelAdapter {
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    const mode = this.config.mode || "websocket"; // 默认使用长连接
-    this.logger.info({ mode }, "Initializing Feishu channel");
+    this.logger.info("Initializing Feishu channel");
 
     // 验证配置
     if (!this.config.appId || !this.config.appSecret) {
@@ -79,10 +76,8 @@ export class FeishuChannel extends BaseChannelAdapter {
       throw error;
     }
 
-    // 如果使用 WebSocket 模式，启动长连接
-    if (mode === "websocket") {
-      await this.startWebSocket();
-    }
+    // 启动 WebSocket 连接
+    await this.startWebSocket();
 
     this.initialized = true;
   }
@@ -143,9 +138,8 @@ export class FeishuChannel extends BaseChannelAdapter {
       // 检查 API 认证
       await this.apiClient.getTenantAccessToken();
 
-      // 如果使用 WebSocket 模式，还要检查连接状态
-      const mode = this.config.mode || "websocket";
-      if (mode === "websocket" && this.wsClient) {
+      // 检查 WebSocket 连接状态
+      if (this.wsClient) {
         return this.wsClient.isConnected();
       }
 
@@ -159,7 +153,7 @@ export class FeishuChannel extends BaseChannelAdapter {
   createRouter(): Router {
     const router = Router();
 
-    // Webhook 路由（即使使用 WebSocket 模式也保留，用于 URL 验证等）
+    // Webhook 路由（用于飞书应用配置时的 URL 验证）
     router.post("/webhook", (req: Request, res: Response) => {
       this.handleWebhook(req, res).catch((error) => {
         this.logger.error({ error }, "Webhook handler error");
@@ -170,7 +164,7 @@ export class FeishuChannel extends BaseChannelAdapter {
     return router;
   }
 
-  /** 处理 Webhook 请求 */
+  /** 处理 Webhook 请求（仅用于 URL 验证） */
   async handleWebhook(req: Request, res: Response): Promise<void> {
     const { body, headers } = req;
 
@@ -198,23 +192,9 @@ export class FeishuChannel extends BaseChannelAdapter {
           break;
 
         case "im.message.receive_v1":
-          // 立即响应，避免飞书超时
+          // WebSocket 模式下忽略 Webhook 消息
+          this.logger.debug("Ignoring webhook message (using WebSocket mode)");
           res.json({ code: 0 });
-
-          // 如果使用 WebSocket 模式，忽略 Webhook 消息（防止重复处理）
-          const mode = this.config.mode || "websocket";
-          if (mode === "websocket") {
-            this.logger.debug("Ignoring webhook message in WebSocket mode");
-            return;
-          }
-
-          // 异步处理消息
-          const context = this.eventHandler.convertToMessageContext(data as MessageReceiveEvent);
-          if (context) {
-            this.handleInboundMessage(context).catch((error) => {
-              this.logger.error({ error, context }, "Failed to handle message");
-            });
-          }
           break;
 
         default:
@@ -232,15 +212,9 @@ export class FeishuChannel extends BaseChannelAdapter {
     return this.apiClient;
   }
 
-  /** 获取连接模式 */
-  getMode(): "websocket" | "webhook" {
-    return this.config.mode || "websocket";
-  }
-
   /** 检查是否使用长连接 */
   isUsingWebSocket(): boolean {
-    const mode = this.config.mode || "websocket";
-    return mode === "websocket" && this.wsClient !== null;
+    return this.wsClient !== null;
   }
 }
 

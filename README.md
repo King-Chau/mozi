@@ -134,7 +134,7 @@ flowchart TD
 | **Agent** | `src/agents/` | 核心消息循环、上下文压缩、会话管理、模型失败重试 |
 | **Providers** | `src/providers/` | 统一的模型调用接口，支持 OpenAI/Anthropic 兼容格式 |
 | **Tools** | `src/tools/` | 工具注册、参数校验、执行引擎，支持自定义扩展 |
-| **Channels** | `src/channels/` | 通道适配器，统一消息格式，支持长连接和 Webhook |
+| **Channels** | `src/channels/` | 通道适配器，统一消息格式，支持长连接 |
 | **Sessions** | `src/sessions/` | 会话持久化，支持内存/文件存储，Transcript 记录 |
 | **Gateway** | `src/gateway/` | HTTP/WebSocket 服务，路由分发 |
 
@@ -282,10 +282,10 @@ QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调
 
 | 模式 | 说明 | 适用场景 | 平台 |
 |------|------|----------|------|
-| **长连接（默认）** | WebSocket/Stream 主动连接，无需公网 IP | 内网部署、本地开发 | QQ、飞书、钉钉 |
+| **长连接** | WebSocket/Stream 主动连接，无需公网 IP | 内网部署、本地开发 | QQ、飞书、钉钉 |
 | Webhook | 被动接收回调，需要公网可访问地址 | 公网服务器部署 | 企业微信 |
 
-> **推荐使用长连接模式**：无需公网 IP，无需配置回调地址，启动即可接收消息。
+> **长连接模式**：无需公网 IP，无需配置回调地址，启动即可接收消息。
 
 ### 飞书
 
@@ -341,14 +341,11 @@ QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调
   channels: {
     feishu: {
       appId: "cli_xxx",
-      appSecret: "xxx",
-      mode: "websocket"  // 默认值，可省略
+      appSecret: "xxx"
     }
   }
 }
 ```
-
-> Webhook 模式：将步骤 2 的订阅方式改为 HTTP，配置回调地址为 `http://your-server:3000/webhook/feishu`，并设置 `mode: "webhook"`。
 
 ### 钉钉
 
@@ -383,8 +380,7 @@ export DINGTALK_APP_SECRET=your_client_secret
   channels: {
     dingtalk: {
       appKey: "your_client_id",
-      appSecret: "your_client_secret",
-      mode: "stream"  // 默认值，可省略
+      appSecret: "your_client_secret"
     }
   }
 }
@@ -397,8 +393,6 @@ mozi start
 ```
 
 在钉钉中搜索机器人名称，发送消息测试。
-
-> **Webhook 模式**：如需使用 HTTP 回调模式，在应用配置中将消息接收模式改为 HTTP 模式，配置地址为 `http://your-server:3000/dingtalk/webhook`，并设置 `mode: "webhook"`。
 
 ### QQ
 

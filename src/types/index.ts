@@ -230,8 +230,6 @@ export interface FeishuConfig {
   verificationToken?: string;
   encryptKey?: string;
   enabled?: boolean;
-  /** 连接模式: websocket (默认，无需公网) 或 webhook (需要公网) */
-  mode?: "websocket" | "webhook";
 }
 
 /** 钉钉配置 */
@@ -240,8 +238,6 @@ export interface DingtalkConfig {
   appSecret: string;
   robotCode?: string;
   enabled?: boolean;
-  /** 连接模式: stream (默认，无需公网) 或 webhook (需要公网) */
-  mode?: "stream" | "webhook";
 }
 
 /** QQ 机器人配置 */

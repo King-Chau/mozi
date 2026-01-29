@@ -62,22 +62,22 @@ export class Gateway {
       res.json({ status: "ok", timestamp: new Date().toISOString() });
     });
 
-    // 飞书 Webhook
+    // 飞书 (WebSocket 长连接)
     if (this.config.channels.feishu) {
       this.feishuChannel = createFeishuChannel(this.config.channels.feishu);
       this.feishuChannel.setMessageHandler(this.handleMessage.bind(this));
       this.app.use("/feishu", this.feishuChannel.createRouter());
       registerChannel(this.feishuChannel);
-      logger.info("Feishu webhook enabled at /feishu/webhook");
+      logger.info("Feishu channel enabled (WebSocket mode)");
     }
 
-    // 钉钉 Webhook
+    // 钉钉 (Stream 长连接)
     if (this.config.channels.dingtalk) {
       this.dingtalkChannel = createDingtalkChannel(this.config.channels.dingtalk);
       this.dingtalkChannel.setMessageHandler(this.handleMessage.bind(this));
       this.app.use("/dingtalk", this.dingtalkChannel.createRouter());
       registerChannel(this.dingtalkChannel);
-      logger.info("DingTalk webhook enabled at /dingtalk/webhook");
+      logger.info("DingTalk channel enabled (Stream mode)");
     }
 
     // QQ 机器人
@@ -260,10 +260,10 @@ export class Gateway {
       console.log(`   控制台: http://${host || "localhost"}:${port}/control`);
       console.log(`   健康检查: http://${host || "localhost"}:${port}/health`);
       if (this.feishuChannel) {
-        console.log(`   飞书 Webhook: http://${host || "localhost"}:${port}/feishu/webhook`);
+        console.log(`   飞书: WebSocket 长连接已启动`);
       }
       if (this.dingtalkChannel) {
-        console.log(`   钉钉 Webhook: http://${host || "localhost"}:${port}/dingtalk/webhook`);
+        console.log(`   钉钉: Stream 长连接已启动`);
       }
       if (this.qqChannel) {
         console.log(`   QQ 机器人: WebSocket 长连接已启动`);

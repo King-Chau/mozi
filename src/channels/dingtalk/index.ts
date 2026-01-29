@@ -1,9 +1,7 @@
 /**
  * 钉钉通道适配器
  *
- * 支持两种连接模式：
- * - stream: Stream 长连接模式 (默认，无需公网部署)
- * - webhook: 传统 HTTP 回调模式 (需要公网部署)
+ * 使用 Stream 长连接模式，无需公网部署
  */
 
 import { Router, type Request, type Response } from "express";
@@ -70,8 +68,7 @@ export class DingtalkChannel extends BaseChannelAdapter {
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    const mode = this.config.mode || "stream"; // 默认使用长连接
-    this.logger.info({ mode }, "Initializing DingTalk channel");
+    this.logger.info("Initializing DingTalk channel");
 
     // 验证配置
     if (!this.config.appKey || !this.config.appSecret) {
@@ -87,10 +84,8 @@ export class DingtalkChannel extends BaseChannelAdapter {
       throw error;
     }
 
-    // 如果使用 Stream 模式，启动长连接
-    if (mode === "stream") {
-      await this.startStream();
-    }
+    // 启动 Stream 连接
+    await this.startStream();
 
     this.initialized = true;
   }
@@ -169,9 +164,8 @@ export class DingtalkChannel extends BaseChannelAdapter {
       // 检查 API 认证
       await this.apiClient.getAccessToken();
 
-      // 如果使用 Stream 模式，还要检查连接状态
-      const mode = this.config.mode || "stream";
-      if (mode === "stream" && this.streamClient) {
+      // 检查 Stream 连接状态
+      if (this.streamClient) {
         return this.streamClient.isConnected();
       }
 
@@ -185,7 +179,7 @@ export class DingtalkChannel extends BaseChannelAdapter {
   createRouter(): Router {
     const router = Router();
 
-    // Webhook 路由（即使使用 Stream 模式也保留，用于兼容）
+    // Webhook 路由（保留用于兼容旧配置）
     router.post("/webhook", (req: Request, res: Response) => {
       this.handleWebhook(req, res).catch((error) => {
         this.logger.error({ error }, "Webhook handler error");
@@ -196,7 +190,7 @@ export class DingtalkChannel extends BaseChannelAdapter {
     return router;
   }
 
-  /** 处理 Webhook 请求 */
+  /** 处理 Webhook 请求（Stream 模式下忽略） */
   async handleWebhook(req: Request, res: Response): Promise<void> {
     const { body, headers } = req;
 
@@ -212,45 +206,9 @@ export class DingtalkChannel extends BaseChannelAdapter {
       }
     }
 
-    try {
-      const message = body as DingtalkCallbackMessage;
-
-      // 立即响应
-      res.json({ msgtype: "empty" });
-
-      // 如果使用 Stream 模式，忽略 Webhook 消息（防止重复处理）
-      const mode = this.config.mode || "stream";
-      if (mode === "stream") {
-        this.logger.debug("Ignoring webhook message in Stream mode");
-        return;
-      }
-
-      // 缓存会话上下文
-      if (message.sessionWebhook) {
-        this.sessionCache.set(message.senderStaffId || message.openConversationId || "", {
-          sessionWebhook: message.sessionWebhook,
-          expireTime: message.sessionWebhookExpiredTime || Date.now() + 3600000,
-          conversationType: message.conversationType === "2" ? "group" : "direct",
-          openConversationId: message.openConversationId,
-        });
-      }
-
-      // 转换并处理消息
-      const context = this.eventHandler.convertToMessageContext(message);
-      if (context) {
-        // 保存 sessionWebhook 到 raw 用于回复
-        if (message.sessionWebhook) {
-          (context as InboundMessageContext & { sessionWebhook?: string }).sessionWebhook =
-            message.sessionWebhook;
-        }
-
-        this.handleInboundMessage(context).catch((error) => {
-          this.logger.error({ error, context }, "Failed to handle message");
-        });
-      }
-    } catch (error) {
-      this.logger.error({ error }, "Failed to parse message");
-    }
+    // Stream 模式下忽略 Webhook 消息
+    this.logger.debug("Ignoring webhook message (using Stream mode)");
+    res.json({ msgtype: "empty" });
   }
 
   /** 使用 Session Webhook 回复 */
@@ -278,15 +236,9 @@ export class DingtalkChannel extends BaseChannelAdapter {
     return this.apiClient;
   }
 
-  /** 获取连接模式 */
-  getMode(): "stream" | "webhook" {
-    return this.config.mode || "stream";
-  }
-
   /** 检查是否使用长连接 */
   isUsingStream(): boolean {
-    const mode = this.config.mode || "stream";
-    return mode === "stream" && this.streamClient !== null;
+    return this.streamClient !== null;
   }
 }
 
