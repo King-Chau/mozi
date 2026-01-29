@@ -12,17 +12,23 @@ import { createLogger, setLogger, getLogDir, getLogFile } from "../utils/logger.
 import dotenv from "dotenv";
 import { spawn } from "child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 // 加载环境变量
 dotenv.config();
+
+// 从 package.json 读取版本号
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = join(__dirname, "..", "..", "package.json");
+const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
 
 const program = new Command();
 
 program
   .name("mozi")
   .description("Mozi - 支持国产模型和国产通讯软件的智能助手机器人")
-  .version("1.2.0");
+  .version(packageJson.version);
 
 // 启动命令
 program
