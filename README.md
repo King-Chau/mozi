@@ -54,15 +54,12 @@ Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，�
 ### 1. 安装
 
 ```bash
-# 克隆项目
+# 一键安装（推荐）
+npm install -g mozi-bot
+
+# 或者克隆项目
 git clone https://github.com/King-Chau/mozi.git
-cd mozi
-
-# 安装依赖
-npm install
-
-# 构建项目
-npm run build
+cd mozi && npm install && npm run build
 ```
 
 ### 2. 配置
