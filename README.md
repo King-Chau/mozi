@@ -112,17 +112,36 @@ npm start -- start
 
 ## 支持的模型提供商
 
+### 国产模型
+
 | 提供商 | 环境变量 | 说明 |
 |--------|----------|------|
 | DeepSeek | `DEEPSEEK_API_KEY` | 推理能力强、性价比高 |
 | DashScope | `DASHSCOPE_API_KEY` | 阿里云灵积，通义千问商业版，稳定高并发 |
-| 智谱 AI | `ZHIPU_API_KEY` | GLM-4.7/4.6/4.5 系列，清华技术团队，有免费额度 |
-| ModelScope | `MODELSCOPE_API_KEY` | 阿里云魔搭社区，Qwen 系列，有免费额度 |
-| Kimi | `KIMI_API_KEY` | 长上下文支持 |
-| 阶跃星辰 | `STEPFUN_API_KEY` | 多模态能力 |
+| 智谱 AI | `ZHIPU_API_KEY` | GLM-4 系列，清华技术团队，有免费额度 |
+| ModelScope | `MODELSCOPE_API_KEY` | 阿里云魔搭社区，Qwen 开源版，有免费额度 |
+| Kimi | `KIMI_API_KEY` | Moonshot，长上下文支持（128K/1M） |
+| 阶跃星辰 | `STEPFUN_API_KEY` | Step 系列，多模态能力 |
 | MiniMax | `MINIMAX_API_KEY` | 语音、视觉能力 |
-| OpenAI | `OPENAI_API_KEY` | 官方 API 或兼容接口 |
-| Ollama | `OLLAMA_BASE_URL` | 本地部署 |
+
+### 海外模型
+
+| 提供商 | 环境变量 | 说明 |
+|--------|----------|------|
+| OpenAI | `OPENAI_API_KEY` | GPT-4o、GPT-4、GPT-3.5 |
+| OpenRouter | `OPENROUTER_API_KEY` | 聚合多家模型，统一 API |
+| Together AI | `TOGETHER_API_KEY` | 开源模型托管，Llama、Mixtral 等 |
+| Groq | `GROQ_API_KEY` | 超快推理速度 |
+
+### 本地部署
+
+| 提供商 | 环境变量 | 说明 |
+|--------|----------|------|
+| Ollama | `OLLAMA_BASE_URL` | 本地运行开源模型 |
+
+### 自定义接口
+
+支持配置任意 OpenAI/Anthropic 兼容的 API 接口，详见「模型提供商配置」章节。
 
 ## 配置说明
 
