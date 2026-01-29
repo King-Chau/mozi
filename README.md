@@ -57,19 +57,20 @@ Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，�
 # 一键安装（推荐）
 npm install -g mozi-bot
 
-# 或者克隆项目
+# 或者克隆项目开发
 git clone https://github.com/King-Chau/mozi.git
 cd mozi && npm install && npm run build
 ```
 
 ### 2. 配置
 
-创建配置文件 `config.local.json5`（会被 git 忽略）：
+npm 安装后，在 `~/.mozi/` 目录下创建配置文件 `config.local.json5`：
 
-```json5
+```bash
+mkdir -p ~/.mozi
+cat > ~/.mozi/config.local.json5 << 'EOF'
 {
   providers: {
-    // 至少配置一个模型提供商
     deepseek: {
       apiKey: "sk-your-deepseek-key"
     }
@@ -79,9 +80,10 @@ cd mozi && npm install && npm run build
     defaultModel: "deepseek-chat"
   }
 }
+EOF
 ```
 
-或者使用环境变量：
+或者使用环境变量（更简单）：
 
 ```bash
 export DEEPSEEK_API_KEY=sk-your-key
@@ -90,10 +92,10 @@ export DEEPSEEK_API_KEY=sk-your-key
 ### 3. 启动
 
 ```bash
-# 启动 WebChat（本地调试）
-npm run dev -- start --web-only
+# npm 安装后直接使用 mozi 命令
+mozi start --web-only
 
-# 或构建后启动
+# 克隆项目方式
 npm start -- start --web-only
 ```
 
@@ -104,7 +106,7 @@ npm start -- start --web-only
 如需连接飞书或钉钉，添加相应配置后启动完整服务：
 
 ```bash
-npm start -- start
+mozi start
 ```
 
 ## 支持的模型提供商
