@@ -22,7 +22,7 @@ const program = new Command();
 program
   .name("mozi")
   .description("Mozi - 支持国产模型和国产通讯软件的智能助手机器人")
-  .version("1.0.0");
+  .version("1.1.1");
 
 // 启动命令
 program
@@ -239,6 +239,7 @@ program
     const readline = await import("readline");
     const fs = await import("fs");
     const path = await import("path");
+    const os = await import("os");
 
     const rl = readline.createInterface({
       input: process.stdin,
@@ -261,54 +262,239 @@ program
 ╚════════════════════════════════════════════════════════════╝
 `);
 
-    const envLines: string[] = [];
+    // 配置对象（用于 config.local.json5）
+    const config: {
+      providers: Record<string, unknown>;
+      channels: Record<string, unknown>;
+      agent: Record<string, unknown>;
+      server: Record<string, unknown>;
+    } = {
+      providers: {},
+      channels: {},
+      agent: {},
+      server: {},
+    };
 
-    // 模型配置
-    console.log("\n📦 步骤 1/3: 配置模型提供商\n");
-    console.log("支持的提供商: DeepSeek, 智谱AI, DashScope(通义千问), Kimi, 阶跃星辰, MiniMax, ModelScope");
-    console.log("(至少配置一个，直接回车跳过)\n");
+    let defaultProvider = "";
+    let defaultModel = "";
 
-    const deepseekKey = await question("DeepSeek API Key: ");
-    if (deepseekKey.trim()) {
-      envLines.push(`DEEPSEEK_API_KEY=${deepseekKey.trim()}`);
-    }
+    // 步骤 1: 选择配置模式
+    console.log("\n📦 步骤 1/4: 选择提供商类型\n");
+    console.log("  1. 国产模型 (DeepSeek, 智谱AI, DashScope, Kimi, 阶跃星辰, MiniMax, ModelScope)");
+    console.log("  2. 自定义 OpenAI 兼容接口 (支持任意 OpenAI API 格式的服务)");
+    console.log("  3. 自定义 Anthropic 兼容接口 (支持任意 Claude API 格式的服务)");
+    console.log("");
 
-    const zhipuKey = await question("智谱AI API Key (GLM-4系列，有免费额度): ");
-    if (zhipuKey.trim()) {
-      envLines.push(`ZHIPU_API_KEY=${zhipuKey.trim()}`);
-    }
+    const providerType = await question("请选择 (1/2/3，可多选用逗号分隔，如 1,2): ");
+    const selectedTypes = providerType.split(",").map((s) => s.trim());
 
-    const dashscopeKey = await question("DashScope API Key (阿里云灵积，通义千问商业版): ");
-    if (dashscopeKey.trim()) {
-      envLines.push(`DASHSCOPE_API_KEY=${dashscopeKey.trim()}`);
-    }
+    // 国产模型配置
+    if (selectedTypes.includes("1")) {
+      console.log("\n--- 国产模型配置 ---\n");
+      console.log("(至少配置一个，直接回车跳过)\n");
 
-    const kimiKey = await question("Kimi (Moonshot) API Key: ");
-    if (kimiKey.trim()) {
-      envLines.push(`KIMI_API_KEY=${kimiKey.trim()}`);
-    }
+      const deepseekKey = await question("DeepSeek API Key: ");
+      if (deepseekKey.trim()) {
+        config.providers["deepseek"] = { apiKey: deepseekKey.trim() };
+        if (!defaultProvider) {
+          defaultProvider = "deepseek";
+          defaultModel = "deepseek-chat";
+        }
+      }
 
-    const stepfunKey = await question("阶跃星辰 API Key: ");
-    if (stepfunKey.trim()) {
-      envLines.push(`STEPFUN_API_KEY=${stepfunKey.trim()}`);
-    }
+      const zhipuKey = await question("智谱AI API Key (GLM-4系列，有免费额度): ");
+      if (zhipuKey.trim()) {
+        config.providers["zhipu"] = { apiKey: zhipuKey.trim() };
+        if (!defaultProvider) {
+          defaultProvider = "zhipu";
+          defaultModel = "glm-4-flash";
+        }
+      }
 
-    const minimaxKey = await question("MiniMax API Key: ");
-    if (minimaxKey.trim()) {
-      envLines.push(`MINIMAX_API_KEY=${minimaxKey.trim()}`);
-      const minimaxGroup = await question("MiniMax Group ID: ");
-      if (minimaxGroup.trim()) {
-        envLines.push(`MINIMAX_GROUP_ID=${minimaxGroup.trim()}`);
+      const dashscopeKey = await question("DashScope API Key (阿里云灵积，通义千问商业版): ");
+      if (dashscopeKey.trim()) {
+        config.providers["dashscope"] = { apiKey: dashscopeKey.trim() };
+        if (!defaultProvider) {
+          defaultProvider = "dashscope";
+          defaultModel = "qwen-plus";
+        }
+      }
+
+      const kimiKey = await question("Kimi (Moonshot) API Key: ");
+      if (kimiKey.trim()) {
+        config.providers["kimi"] = { apiKey: kimiKey.trim() };
+        if (!defaultProvider) {
+          defaultProvider = "kimi";
+          defaultModel = "moonshot-v1-8k";
+        }
+      }
+
+      const stepfunKey = await question("阶跃星辰 API Key: ");
+      if (stepfunKey.trim()) {
+        config.providers["stepfun"] = { apiKey: stepfunKey.trim() };
+        if (!defaultProvider) {
+          defaultProvider = "stepfun";
+          defaultModel = "step-1-8k";
+        }
+      }
+
+      const minimaxKey = await question("MiniMax API Key: ");
+      if (minimaxKey.trim()) {
+        const minimaxGroup = await question("MiniMax Group ID: ");
+        config.providers["minimax"] = {
+          apiKey: minimaxKey.trim(),
+          groupId: minimaxGroup.trim() || undefined,
+        };
+        if (!defaultProvider) {
+          defaultProvider = "minimax";
+          defaultModel = "abab6.5s-chat";
+        }
+      }
+
+      const modelscopeKey = await question("ModelScope API Key (阿里魔搭社区，有免费额度): ");
+      if (modelscopeKey.trim()) {
+        config.providers["modelscope"] = { apiKey: modelscopeKey.trim() };
+        if (!defaultProvider) {
+          defaultProvider = "modelscope";
+          defaultModel = "qwen2.5-72b-instruct";
+        }
       }
     }
 
-    const modelscopeKey = await question("ModelScope API Key (阿里魔搭社区，有免费额度): ");
-    if (modelscopeKey.trim()) {
-      envLines.push(`MODELSCOPE_API_KEY=${modelscopeKey.trim()}`);
+    // 自定义 OpenAI 兼容接口
+    if (selectedTypes.includes("2")) {
+      console.log("\n--- 自定义 OpenAI 兼容接口配置 ---\n");
+      console.log("适用于: OpenAI、Azure OpenAI、vLLM、Ollama、其他 OpenAI 兼容服务\n");
+
+      const customOpenaiBaseUrl = await question("API Endpoint (如 https://api.openai.com/v1): ");
+      if (customOpenaiBaseUrl.trim()) {
+        const customOpenaiKey = await question("API Key: ");
+        const customOpenaiName = await question("提供商名称 (如 OpenAI、vLLM): ");
+
+        console.log("\n配置模型列表 (至少添加一个模型):");
+        const models: Array<{
+          id: string;
+          name?: string;
+          contextWindow?: number;
+          maxTokens?: number;
+          supportsVision?: boolean;
+        }> = [];
+
+        let addMore = true;
+        while (addMore) {
+          const modelId = await question("\n模型 ID (如 gpt-4o, gpt-3.5-turbo): ");
+          if (!modelId.trim()) {
+            if (models.length === 0) {
+              console.log("⚠️  至少需要添加一个模型");
+              continue;
+            }
+            break;
+          }
+
+          const modelName = await question("模型显示名称 (可选，直接回车使用 ID): ");
+          const contextWindow = await question("上下文窗口大小 (默认 128000): ");
+          const maxTokens = await question("最大输出 Token (默认 4096): ");
+          const supportsVision = await question("是否支持视觉/图片 (y/n，默认 n): ");
+
+          models.push({
+            id: modelId.trim(),
+            name: modelName.trim() || undefined,
+            contextWindow: contextWindow.trim() ? parseInt(contextWindow.trim(), 10) : undefined,
+            maxTokens: maxTokens.trim() ? parseInt(maxTokens.trim(), 10) : undefined,
+            supportsVision: supportsVision.toLowerCase() === "y" ? true : undefined,
+          });
+
+          console.log(`✓ 已添加模型: ${modelId.trim()}`);
+          const continueAdd = await question("继续添加模型? (y/n): ");
+          addMore = continueAdd.toLowerCase() === "y";
+        }
+
+        if (models.length > 0) {
+          config.providers["custom-openai"] = {
+            id: "custom-openai",
+            name: customOpenaiName.trim() || "Custom OpenAI",
+            baseUrl: customOpenaiBaseUrl.trim(),
+            apiKey: customOpenaiKey.trim(),
+            models: models,
+          };
+
+          if (!defaultProvider && models[0]) {
+            defaultProvider = "custom-openai";
+            defaultModel = models[0].id;
+          }
+        }
+      }
     }
 
-    // 通道配置
-    console.log("\n📱 步骤 2/3: 配置通讯平台\n");
+    // 自定义 Anthropic 兼容接口
+    if (selectedTypes.includes("3")) {
+      console.log("\n--- 自定义 Anthropic 兼容接口配置 ---\n");
+      console.log("适用于: Anthropic Claude、AWS Bedrock Claude、其他 Claude API 兼容服务\n");
+
+      const customAnthropicBaseUrl = await question("API Endpoint (如 https://api.anthropic.com/v1): ");
+      if (customAnthropicBaseUrl.trim()) {
+        const customAnthropicKey = await question("API Key: ");
+        const customAnthropicName = await question("提供商名称 (如 Anthropic、Bedrock): ");
+        const apiVersion = await question("API 版本 (默认 2023-06-01): ");
+
+        console.log("\n配置模型列表 (至少添加一个模型):");
+        const models: Array<{
+          id: string;
+          name?: string;
+          contextWindow?: number;
+          maxTokens?: number;
+          supportsVision?: boolean;
+        }> = [];
+
+        let addMore = true;
+        while (addMore) {
+          const modelId = await question("\n模型 ID (如 claude-3-5-sonnet-20241022): ");
+          if (!modelId.trim()) {
+            if (models.length === 0) {
+              console.log("⚠️  至少需要添加一个模型");
+              continue;
+            }
+            break;
+          }
+
+          const modelName = await question("模型显示名称 (可选，直接回车使用 ID): ");
+          const contextWindow = await question("上下文窗口大小 (默认 200000): ");
+          const maxTokens = await question("最大输出 Token (默认 8192): ");
+          const supportsVision = await question("是否支持视觉/图片 (y/n，默认 n): ");
+
+          models.push({
+            id: modelId.trim(),
+            name: modelName.trim() || undefined,
+            contextWindow: contextWindow.trim() ? parseInt(contextWindow.trim(), 10) : undefined,
+            maxTokens: maxTokens.trim() ? parseInt(maxTokens.trim(), 10) : undefined,
+            supportsVision: supportsVision.toLowerCase() === "y" ? true : undefined,
+          });
+
+          console.log(`✓ 已添加模型: ${modelId.trim()}`);
+          const continueAdd = await question("继续添加模型? (y/n): ");
+          addMore = continueAdd.toLowerCase() === "y";
+        }
+
+        if (models.length > 0) {
+          config.providers["custom-anthropic"] = {
+            id: "custom-anthropic",
+            name: customAnthropicName.trim() || "Custom Anthropic",
+            baseUrl: customAnthropicBaseUrl.trim(),
+            apiKey: customAnthropicKey.trim(),
+            apiVersion: apiVersion.trim() || "2023-06-01",
+            models: models,
+          };
+
+          if (!defaultProvider && models[0]) {
+            defaultProvider = "custom-anthropic";
+            defaultModel = models[0].id;
+          }
+        }
+      }
+    }
+
+    // 步骤 2: 通道配置
+    console.log("\n📱 步骤 2/4: 配置通讯平台\n");
     console.log("支持的平台: 飞书, 钉钉");
     console.log("(可选配置，直接回车跳过)\n");
 
@@ -317,12 +503,10 @@ program
       const feishuAppId = await question("飞书 App ID: ");
       const feishuAppSecret = await question("飞书 App Secret: ");
       if (feishuAppId.trim() && feishuAppSecret.trim()) {
-        envLines.push(`FEISHU_APP_ID=${feishuAppId.trim()}`);
-        envLines.push(`FEISHU_APP_SECRET=${feishuAppSecret.trim()}`);
-        const encryptKey = await question("飞书 Encrypt Key (可选): ");
-        if (encryptKey.trim()) {
-          envLines.push(`FEISHU_ENCRYPT_KEY=${encryptKey.trim()}`);
-        }
+        config.channels["feishu"] = {
+          appId: feishuAppId.trim(),
+          appSecret: feishuAppSecret.trim(),
+        };
       }
     }
 
@@ -331,39 +515,88 @@ program
       const dingtalkKey = await question("钉钉 App Key: ");
       const dingtalkSecret = await question("钉钉 App Secret: ");
       if (dingtalkKey.trim() && dingtalkSecret.trim()) {
-        envLines.push(`DINGTALK_APP_KEY=${dingtalkKey.trim()}`);
-        envLines.push(`DINGTALK_APP_SECRET=${dingtalkSecret.trim()}`);
-        const robotCode = await question("钉钉 Robot Code (可选): ");
-        if (robotCode.trim()) {
-          envLines.push(`DINGTALK_ROBOT_CODE=${robotCode.trim()}`);
-        }
+        config.channels["dingtalk"] = {
+          appKey: dingtalkKey.trim(),
+          appSecret: dingtalkSecret.trim(),
+        };
       }
     }
 
-    // 服务器配置
-    console.log("\n🌐 步骤 3/3: 配置服务器\n");
+    // 步骤 3: 服务器配置
+    console.log("\n🌐 步骤 3/4: 配置服务器\n");
 
-    const port = await question("服务器端口 (默认 18789): ");
-    envLines.push(`MOZI_PORT=${port.trim() || "18789"}`);
+    const port = await question("服务器端口 (默认 3000): ");
+    config.server = {
+      port: parseInt(port.trim(), 10) || 3000,
+    };
 
-    // 写入 .env 文件
+    // 步骤 4: Agent 配置
+    console.log("\n🤖 步骤 4/4: 配置 Agent\n");
+
+    if (defaultProvider && defaultModel) {
+      console.log(`检测到默认模型: ${defaultProvider} / ${defaultModel}`);
+      const changeDefault = await question("是否修改默认模型? (y/n): ");
+      if (changeDefault.toLowerCase() === "y") {
+        const newProvider = await question(`默认提供商 (当前: ${defaultProvider}): `);
+        const newModel = await question(`默认模型 (当前: ${defaultModel}): `);
+        if (newProvider.trim()) defaultProvider = newProvider.trim();
+        if (newModel.trim()) defaultModel = newModel.trim();
+      }
+    } else {
+      defaultProvider = await question("默认提供商: ");
+      defaultModel = await question("默认模型: ");
+    }
+
+    if (defaultProvider && defaultModel) {
+      config.agent = {
+        defaultProvider,
+        defaultModel,
+      };
+    }
+
+    // 写入配置文件
     console.log("\n");
 
-    if (envLines.length > 0) {
-      const envContent = envLines.join("\n") + "\n";
-      const envPath = path.join(process.cwd(), ".env");
-
-      const writeEnv = await question(`是否写入配置到 ${envPath}? (y/n): `);
-      if (writeEnv.toLowerCase() === "y") {
-        fs.writeFileSync(envPath, envContent);
-        console.log(`\n✅ 配置已保存到 ${envPath}`);
-      } else {
-        console.log("\n📋 以下是您的配置，请手动保存到 .env 文件:\n");
-        console.log("---");
-        console.log(envContent);
-        console.log("---");
-      }
+    const hasProviders = Object.keys(config.providers).length > 0;
+    if (!hasProviders) {
+      console.log("⚠️  未配置任何模型提供商，请至少配置一个。\n");
+      rl.close();
+      return;
     }
+
+    // 清理空对象
+    if (Object.keys(config.channels).length === 0) delete (config as Record<string, unknown>).channels;
+    if (Object.keys(config.agent).length === 0) delete (config as Record<string, unknown>).agent;
+
+    // 生成 JSON5 格式配置
+    const configContent = generateJson5(config);
+
+    // 配置文件路径
+    const moziDir = path.join(os.homedir(), ".mozi");
+    const configPath = path.join(moziDir, "config.local.json5");
+
+    console.log("📋 生成的配置文件:\n");
+    console.log("---");
+    console.log(configContent);
+    console.log("---\n");
+
+    const writeConfig = await question(`是否写入配置到 ${configPath}? (y/n): `);
+    if (writeConfig.toLowerCase() === "y") {
+      // 确保目录存在
+      if (!fs.existsSync(moziDir)) {
+        fs.mkdirSync(moziDir, { recursive: true });
+      }
+      fs.writeFileSync(configPath, configContent);
+      console.log(`\n✅ 配置已保存到 ${configPath}`);
+    } else {
+      console.log("\n📋 请手动将上述配置保存到配置文件中。");
+    }
+
+    const hasChannels = Object.keys(config.channels || {}).length > 0;
+    const startCmd = hasChannels ? "mozi start" : "mozi start --web-only";
+    const startNote = hasChannels
+      ? "   (已配置飞书/钉钉，将同时启动)"
+      : "   (仅 WebChat，如需飞书/钉钉请配置 channels)";
 
     console.log(`
 ╔════════════════════════════════════════════════════════════╗
@@ -373,16 +606,61 @@ program
 ║   下一步:                                                  ║
 ║                                                            ║
 ║   1. 检查配置: mozi check                                  ║
-║   2. 启动服务: mozi start                                  ║
+║   2. 启动服务: ${startCmd.padEnd(26)}║
+${startNote.padEnd(61)}║
 ║   3. 测试聊天: mozi chat                                   ║
 ║                                                            ║
-║   文档: https://github.com/King-Chau/mozi              ║
+║   启动选项:                                                ║
+║   - mozi start           完整服务 (WebChat+飞书+钉钉)      ║
+║   - mozi start --web-only 仅 WebChat                       ║
+║                                                            ║
+║   配置文件: ~/.mozi/config.local.json5                     ║
+║   文档: https://github.com/King-Chau/mozi                  ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
 `);
 
     rl.close();
   });
+
+/** 生成 JSON5 格式的配置字符串 */
+function generateJson5(obj: unknown, indent = 0): string {
+  const spaces = "  ".repeat(indent);
+  const innerSpaces = "  ".repeat(indent + 1);
+
+  if (obj === null || obj === undefined) {
+    return "null";
+  }
+
+  if (typeof obj === "string") {
+    return `"${obj.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  }
+
+  if (typeof obj === "number" || typeof obj === "boolean") {
+    return String(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return "[]";
+    const items = obj.map((item) => `${innerSpaces}${generateJson5(item, indent + 1)}`);
+    return `[\n${items.join(",\n")}\n${spaces}]`;
+  }
+
+  if (typeof obj === "object") {
+    const entries = Object.entries(obj).filter(([, v]) => v !== undefined);
+    if (entries.length === 0) return "{}";
+
+    const items = entries.map(([key, value]) => {
+      // 使用不带引号的 key（如果是有效标识符）
+      const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$-]*$/.test(key) ? key : `"${key}"`;
+      return `${innerSpaces}${safeKey}: ${generateJson5(value, indent + 1)}`;
+    });
+
+    return `{\n${items.join(",\n")}\n${spaces}}`;
+  }
+
+  return String(obj);
+}
 
 // 日志查看命令
 program

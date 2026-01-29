@@ -70,9 +70,17 @@ cd mozi && npm install && npm run build
 mozi onboard
 ```
 
-向导会引导你选择模型提供商并输入 API Key，自动生成配置文件。
+向导支持配置：
+- **国产模型** — DeepSeek、智谱AI、DashScope、Kimi、阶跃星辰、MiniMax、ModelScope
+- **自定义 OpenAI 兼容接口** — 支持任意 OpenAI API 格式的服务（如 vLLM、Ollama）
+- **自定义 Anthropic 兼容接口** — 支持任意 Claude API 格式的服务
+- **通讯平台** — 飞书、钉钉
 
-或者使用环境变量（更简单）：
+自定义接口支持配置 API Endpoint、API Key、模型列表（包含上下文窗口、最大 Token 等参数）。
+
+配置文件将保存到 `~/.mozi/config.local.json5`。
+
+或者使用环境变量（简单场景）：
 
 ```bash
 export DEEPSEEK_API_KEY=sk-your-key
@@ -97,8 +105,11 @@ export DEEPSEEK_API_KEY=sk-your-key
 ### 3. 启动
 
 ```bash
-# npm 安装后直接使用 mozi 命令
+# 仅 WebChat（无需配置飞书/钉钉）
 mozi start --web-only
+
+# 完整服务（WebChat + 飞书 + 钉钉）
+mozi start
 
 # 克隆项目方式
 npm start -- start --web-only
@@ -108,7 +119,7 @@ npm start -- start --web-only
 
 ### 4. 连接通讯平台（可选）
 
-如需连接飞书或钉钉，添加相应配置后启动完整服务：
+如需连接飞书或钉钉，在 `mozi onboard` 中配置或手动添加配置后，启动完整服务：
 
 ```bash
 mozi start
@@ -414,6 +425,7 @@ mozi logs -f            # 实时跟踪日志（类似 tail -f）
 mozi logs --level error # 只显示错误日志
 
 # 其他命令
+mozi onboard            # 配置向导（支持国产模型/自定义接口）
 mozi check              # 检查配置
 mozi models             # 列出可用模型
 mozi chat               # 命令行聊天
