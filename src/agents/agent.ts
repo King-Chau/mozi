@@ -672,33 +672,17 @@ export class Agent {
 
   /** 验证 tool_calls 和 tool 消息配对，清理不完整的工具调用 */
   private validateToolCallPairs(messages: ChatMessage[]): ChatMessage[] {
-    // 第一遍：收集所有有效的 tool_call_id
-    const validToolCallIds = new Set<string>();
-    for (const msg of messages) {
-      if (msg.role === "assistant" && msg.tool_calls) {
-        for (const tc of msg.tool_calls) {
-          validToolCallIds.add(tc.id);
-        }
-      }
-    }
-
-    const result: ChatMessage[] = [];
+    // 第一遍：处理 assistant+tool 配对，记录哪些 tool_call_id 被完整保留
+    const preservedToolCallIds = new Set<string>();
+    const firstPassResult: ChatMessage[] = [];
     let i = 0;
 
     while (i < messages.length) {
       const msg = messages[i]!;
 
-      // 如果是 tool 消息，检查是否有对应的 tool_call
+      // 跳过 tool 消息（第二遍处理）
       if (msg.role === "tool") {
-        if (msg.tool_call_id && validToolCallIds.has(msg.tool_call_id)) {
-          result.push(msg);
-        } else {
-          // 孤立的 tool_result，跳过
-          logger.warn(
-            { orphanToolCallId: msg.tool_call_id, messageIndex: i },
-            "Skipping orphan tool_result message"
-          );
-        }
+        firstPassResult.push(msg);
         i++;
         continue;
       }
@@ -722,8 +706,12 @@ export class Agent {
         // 检查是否所有 tool_calls 都有对应的 tool 结果
         if (toolCallIds.size === 0) {
           // 完整配对，添加 assistant 和所有 tool 消息
-          result.push(msg);
-          result.push(...toolResults);
+          firstPassResult.push(msg);
+          firstPassResult.push(...toolResults);
+          // 标记这些 tool_call_id 为已保留
+          for (const tc of msg.tool_calls) {
+            preservedToolCallIds.add(tc.id);
+          }
         } else {
           // 不完整的工具调用，跳过整个 assistant 消息和相关 tool 消息
           logger.warn(
@@ -732,7 +720,7 @@ export class Agent {
           );
           // 如果 assistant 消息有文本内容，保留文本内容但移除 tool_calls
           if (msg.content) {
-            result.push({
+            firstPassResult.push({
               role: "assistant",
               content: msg.content,
             });
@@ -743,8 +731,25 @@ export class Agent {
         i = j;
       } else {
         // 普通消息直接添加
-        result.push(msg);
+        firstPassResult.push(msg);
         i++;
+      }
+    }
+
+    // 第二遍：过滤掉孤立的 tool_result（对应的 assistant tool_calls 未被完整保留）
+    const result: ChatMessage[] = [];
+    for (const msg of firstPassResult) {
+      if (msg.role === "tool") {
+        if (msg.tool_call_id && preservedToolCallIds.has(msg.tool_call_id)) {
+          result.push(msg);
+        } else {
+          logger.warn(
+            { orphanToolCallId: msg.tool_call_id },
+            "Skipping orphan tool_result message"
+          );
+        }
+      } else {
+        result.push(msg);
       }
     }
 
