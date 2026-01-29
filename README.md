@@ -2,12 +2,12 @@
 
 **支持国产大模型和国产通讯软件的智能助手框架**
 
-Mozi 是一个轻量级的 AI 助手框架，专注于国产生态。它提供统一的接口对接多种国产 AI 模型（DeepSeek、Qwen、Kimi 等），支持 OpenAI Function Calling，并支持 QQ、飞书、钉钉等通讯平台。
+Mozi 是一个轻量级的 AI 助手框架，专注于国产生态。它提供统一的接口对接多种国产 AI 模型（DeepSeek、Qwen、Kimi 等），支持 OpenAI Function Calling，并支持 QQ、飞书、钉钉、企业微信等通讯平台。
 
 ## 核心特性
 
 - **多模型支持** — DeepSeek、DashScope (Qwen)、智谱AI、Kimi、阶跃星辰、MiniMax，以及 OpenAI/Anthropic 兼容格式
-- **多平台通道** — QQ、飞书、钉钉，统一的消息处理接口
+- **多平台通道** — QQ、飞书、钉钉、企业微信，统一的消息处理接口
 - **Function Calling** — 原生支持 OpenAI tools/tool_choice 参数
 - **17 内置工具** — 文件读写、Bash 执行、代码搜索、网页获取、图像分析、浏览器自动化等
 - **会话管理** — 上下文压缩、会话持久化、多轮对话
@@ -22,7 +22,7 @@ Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，�
 | **定位** | 国产生态优先的轻量框架 | 全功能个人 AI 助手 |
 | **代码量** | ~16,000 行 (64 文件) | ~516,000 行 (3,137 文件) |
 | **国产模型** | DeepSeek、Qwen、Kimi 等 7+ 家 | 仅 Anthropic、OpenAI |
-| **国产通讯** | QQ、飞书、钉钉原生支持 | WhatsApp、Telegram、Slack 等 |
+| **国产通讯** | QQ、飞书、钉钉、企业微信原生支持 | WhatsApp、Telegram、Slack 等 |
 | **Node.js 版本** | >= 18 | >= 22 |
 | **适用场景** | 企业内部机器人、国内团队协作 | 个人多设备助手、海外平台集成 |
 
@@ -48,6 +48,7 @@ flowchart TB
         Feishu["🔵 飞书\nWebSocket 长连接"]
         Dingtalk["🟢 钉钉\nStream 长连接"]
         QQ["🟣 QQ\nWebSocket 长连接"]
+        WeCom["🔴 企业微信\nHTTP 回调"]
         WebChat["🟡 WebChat\nHTTP + WebSocket"]
     end
 
@@ -87,6 +88,7 @@ flowchart TB
     Feishu --> Gateway
     Dingtalk --> Gateway
     QQ --> Gateway
+    WeCom --> Gateway
     WebChat --> Gateway
     Gateway --> Agent
     Agent --> MsgLoop
@@ -175,7 +177,7 @@ mozi onboard
 - **国产模型** — DeepSeek、智谱AI、DashScope、Kimi、阶跃星辰、MiniMax、ModelScope
 - **自定义 OpenAI 兼容接口** — 支持任意 OpenAI API 格式的服务（如 vLLM、Ollama）
 - **自定义 Anthropic 兼容接口** — 支持任意 Claude API 格式的服务
-- **通讯平台** — QQ、飞书、钉钉
+- **通讯平台** — QQ、飞书、钉钉、企业微信
 
 配置文件将保存到 `~/.mozi/config.local.json5`。
 
@@ -276,12 +278,12 @@ npm start -- start --web-only
 
 ## 通讯平台接入
 
-QQ、飞书和钉钉都支持长连接模式：
+QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调模式：
 
-| 模式 | 说明 | 适用场景 |
-|------|------|----------|
-| **长连接（默认）** | WebSocket/Stream 主动连接，无需公网 IP | 内网部署、本地开发 |
-| Webhook | 被动接收回调，需要公网可访问地址 | 公网服务器部署 |
+| 模式 | 说明 | 适用场景 | 平台 |
+|------|------|----------|------|
+| **长连接（默认）** | WebSocket/Stream 主动连接，无需公网 IP | 内网部署、本地开发 | QQ、飞书、钉钉 |
+| Webhook | 被动接收回调，需要公网可访问地址 | 公网服务器部署 | 企业微信 |
 
 > **推荐使用长连接模式**：无需公网 IP，无需配置回调地址，启动即可接收消息。
 
@@ -456,6 +458,71 @@ export QQ_SANDBOX=false  # 可选，默认 false
 1. 在机器人管理页面，扫描「添加成员」旁边的二维码
 2. 将机器人添加到聊天界面或拉入群聊
 
+### 企业微信
+
+> ⚠️ **注意**：企业微信仅支持 Webhook 回调模式，需要公网可访问地址。此功能尚未完成测试。
+
+企业微信机器人需要通过 HTTP 回调方式接收消息，与 QQ、飞书、钉钉的长连接模式不同。
+
+#### 前提条件
+
+- **企业微信管理员权限**：需要拥有企业微信企业的管理员权限
+- **公网可访问地址**：未认证企业可用公网 IP，已认证企业需使用已备案且主体一致的域名
+
+#### 1. 创建机器人
+
+1. 登录 [企业微信管理后台](https://work.weixin.qq.com/)
+2. 导航至「安全与管理 > 管理工具」，点击「创建机器人」
+3. 滑到页面底部，选择「API 模式」创建
+4. 填写名称、简介、可见范围
+
+#### 2. 配置回调 URL
+
+1. 在创建页面配置 URL，格式为：
+   ```
+   http://your-server:3000/wecom/webhook
+   ```
+2. 点击「随机获取」生成 **Token** 和 **EncodingAESKey**
+3. **先不要点创建**，转去配置 Mozi
+
+#### 3. Mozi 配置
+
+```json5
+{
+  channels: {
+    wecom: {
+      corpId: "your_corp_id",         // 企业 ID（在企业信息页面查看）
+      corpSecret: "your_corp_secret", // 应用密钥
+      agentId: "your_agent_id",       // 应用 ID
+      token: "your_token",            // 步骤 2 生成的 Token
+      encodingAESKey: "your_aes_key"  // 步骤 2 生成的 EncodingAESKey
+    }
+  }
+}
+```
+
+环境变量方式：
+
+```bash
+export WECOM_CORP_ID=your_corp_id
+export WECOM_CORP_SECRET=your_corp_secret
+export WECOM_AGENT_ID=your_agent_id
+export WECOM_TOKEN=your_token
+export WECOM_ENCODING_AES_KEY=your_aes_key
+```
+
+#### 4. 启动服务
+
+```bash
+mozi start
+```
+
+#### 5. 完成创建
+
+1. 回到企业微信创建页面，点击「创建」按钮
+2. 创建成功后扫描二维码添加机器人
+3. 在聊天窗口对话测试
+
 ## 配置参考
 
 配置文件支持 `config.local.json5`、`config.json5`、`config.yaml` 等格式，优先级从高到低。存放在 `~/.mozi/` 目录下。
@@ -504,6 +571,13 @@ export QQ_SANDBOX=false  # 可选，默认 false
       appId: "xxx",
       clientSecret: "xxx",
       sandbox: false  // 沙箱环境设为 true
+    },
+    wecom: {
+      corpId: "xxx",
+      corpSecret: "xxx",
+      agentId: "xxx",
+      token: "xxx",
+      encodingAESKey: "xxx"
     }
   },
 
@@ -583,7 +657,7 @@ mozi logs --level error # 只显示错误日志
 ```
 src/
 ├── agents/        # Agent 核心（消息循环、上下文压缩、会话管理）
-├── channels/      # 通道适配器（QQ、飞书、钉钉）
+├── channels/      # 通道适配器（QQ、飞书、钉钉、企业微信）
 ├── providers/     # 模型提供商（统一接口）
 ├── tools/         # 内置工具（文件、Bash、网络等）
 ├── sessions/      # 会话存储（内存、文件）
