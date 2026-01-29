@@ -28,51 +28,70 @@ Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，�
 
 > **Mozi 用 3% 的代码量实现了核心功能**，专注简洁高效，易于理解和二次开发。
 
+## 学习 Agent 原理
+
+如果你想了解 AI Agent 的工作原理，Mozi 是一个很好的学习项目。相比动辄几十万行代码的大型框架，Mozi 只有约 16,000 行代码，但实现了完整的 Agent 核心功能：
+
+- **消息循环** — 用户输入 → LLM 推理 → 工具调用 → 结果反馈
+- **上下文管理** — 会话历史、Token 压缩、多轮对话
+- **工具系统** — 函数定义、参数校验、结果处理
+- **流式输出** — SSE/WebSocket 实时响应
+- **失败重试** — 模型调用失败自动切换备选模型
+
+代码结构清晰，注释完善，适合阅读源码学习 Agent 架构设计。
+
 ## 架构设计
 
 ```mermaid
-flowchart LR
-    subgraph Channels["📡 通道层"]
-        direction TB
-        Feishu["飞书<br/>WebSocket"]
-        Dingtalk["钉钉<br/>Stream"]
-        WebChat["WebChat<br/>HTTP/WS"]
+flowchart TB
+    subgraph Input["📥 输入层"]
+        Feishu["🔵 飞书\nWebSocket 长连接"]
+        Dingtalk["🟢 钉钉\nStream 长连接"]
+        WebChat["🟡 WebChat\nHTTP + WebSocket"]
     end
 
-    subgraph Gateway["🚪 网关层"]
-        direction TB
-        HTTP["HTTP Server"]
-        WS["WebSocket Server"]
+    subgraph Server["🚀 服务层"]
+        Gateway["Gateway 网关\nHTTP/WebSocket 路由"]
     end
 
-    subgraph Core["🤖 Agent 核心"]
-        direction TB
-        Loop["消息循环"]
-        Context["上下文管理"]
-        Session["会话存储"]
+    subgraph Core["⚙️ 核心层"]
+        Agent["Agent 引擎"]
+
+        subgraph AgentInner[" "]
+            MsgLoop["📨 消息循环\nUser → LLM → Tool → Result"]
+            CtxMgr["📚 上下文管理\n历史压缩 / Token 控制"]
+            Session["💾 会话存储\nMemory / File"]
+        end
     end
 
-    subgraph LLM["🔌 模型层"]
-        direction TB
-        P1["DeepSeek"]
-        P2["DashScope"]
-        P3["智谱AI"]
-        P4["Kimi"]
-        P5["OpenAI"]
+    subgraph External["🔗 外部依赖"]
+        subgraph Providers["模型提供商"]
+            P1["DeepSeek"]
+            P2["DashScope"]
+            P3["智谱AI"]
+            P4["Kimi"]
+            P5["OpenAI"]
+            P6["Anthropic"]
+        end
+
+        subgraph Tools["工具系统"]
+            T1["📁 文件操作\nread/write/edit/glob/grep"]
+            T2["⌨️ Bash 执行\n命令行 / 进程管理"]
+            T3["🌐 网络请求\nsearch/fetch"]
+            T4["🖼️ 多媒体\n图像分析 / 浏览器"]
+            T5["🤖 子 Agent\n复杂任务分解"]
+        end
     end
 
-    subgraph Tools["🛠️ 工具层"]
-        direction TB
-        T1["文件操作"]
-        T2["Bash 执行"]
-        T3["网络请求"]
-        T4["浏览器"]
-        T5["子Agent"]
-    end
-
-    Channels --> Gateway --> Core
-    Core <--> LLM
-    Core <--> Tools
+    Feishu --> Gateway
+    Dingtalk --> Gateway
+    WebChat --> Gateway
+    Gateway --> Agent
+    Agent --> MsgLoop
+    MsgLoop <--> CtxMgr
+    MsgLoop <--> Session
+    MsgLoop <-->|"调用模型"| Providers
+    MsgLoop <-->|"执行工具"| Tools
 ```
 
 ### 消息处理流程
@@ -474,18 +493,6 @@ npm run build
 # 测试
 npm test
 ```
-
-## 学习 Agent 原理
-
-如果你想了解 AI Agent 的工作原理，Mozi 是一个很好的学习项目。相比动辄几十万行代码的大型框架，Mozi 只有约 16,000 行代码，但实现了完整的 Agent 核心功能：
-
-- **消息循环** — 用户输入 → LLM 推理 → 工具调用 → 结果反馈
-- **上下文管理** — 会话历史、Token 压缩、多轮对话
-- **工具系统** — 函数定义、参数校验、结果处理
-- **流式输出** — SSE/WebSocket 实时响应
-- **失败重试** — 模型调用失败自动切换备选模型
-
-代码结构清晰，注释完善，适合阅读源码学习 Agent 架构设计。
 
 ## Star History
 
