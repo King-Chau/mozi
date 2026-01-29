@@ -285,13 +285,52 @@ npm start -- start --web-only
 
 ### 飞书
 
+#### 1. 创建应用
+
 1. 登录 [飞书开放平台](https://open.feishu.cn/)，创建企业自建应用
 2. 获取 App ID 和 App Secret
-3. 启用「机器人」能力
-4. 添加权限：`im:message`、`im:message.group_at_msg`
-5. 进入「事件订阅」，将订阅方式设置为「使用长连接接收事件」
-6. 添加事件：`im.message.receive_v1`（接收消息）
-7. 配置完成，启动服务即可
+3. 在应用管理页左侧导航栏，找到「应用能力」，启用「机器人」能力
+
+#### 2. 事件配置
+
+1. 在应用管理页左侧导航栏，找到「事件与回调」，点击进入
+2. 订阅方式选择「长连接」，点击「保存」
+   > ⚠️ 如果提示"未建立长连接"，请检查 App ID 和 App Secret 是否已正确配置到 `~/.mozi/config.local.json5`
+3. 点击「添加事件」，在弹出列表中选择「消息与群组」分类，勾选「接收消息」（`im.message.receive_v1`），点击「确定」
+
+#### 3. 权限配置
+
+1. 在应用管理页左侧导航栏，找到「权限管理」，点击进入
+2. 点击「批量导入权限」按钮，将以下 JSON 粘贴到输入框中，点击「导入」：
+
+```json
+{
+  "scopes": {
+    "tenant": [
+      "contact:user.base:readonly",
+      "im:chat",
+      "im:chat:read",
+      "im:chat:update",
+      "im:message",
+      "im:message.group_at_msg:readonly",
+      "im:message.p2p_msg:readonly",
+      "im:message:send_as_bot",
+      "im:resource"
+    ],
+    "user": []
+  }
+}
+```
+
+3. 页面显示「导入成功」即为完成
+
+#### 4. 发布应用
+
+1. 在应用管理页左侧导航栏，找到「版本管理与发布」
+2. 点击右上角「新建版本」，填写版本号与描述
+3. 保存并发布，等待审核通过
+
+#### 5. Mozi 配置
 
 ```json5
 {
@@ -305,7 +344,7 @@ npm start -- start --web-only
 }
 ```
 
-> Webhook 模式：将步骤 5 的订阅方式改为 HTTP，配置回调地址为 `http://your-server:3000/webhook/feishu`，并设置 `mode: "webhook"`。
+> Webhook 模式：将步骤 2 的订阅方式改为 HTTP，配置回调地址为 `http://your-server:3000/webhook/feishu`，并设置 `mode: "webhook"`。
 
 ### 钉钉
 
