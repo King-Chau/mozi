@@ -33,6 +33,22 @@ const DingtalkConfigSchema = z.object({
   enabled: z.boolean().optional().default(true),
 });
 
+const QQConfigSchema = z.object({
+  appId: z.string(),
+  clientSecret: z.string(),
+  enabled: z.boolean().optional().default(true),
+  sandbox: z.boolean().optional().default(false),
+});
+
+const WeComConfigSchema = z.object({
+  corpId: z.string(),
+  corpSecret: z.string(),
+  agentId: z.number(),
+  token: z.string().optional(),
+  encodingAESKey: z.string().optional(),
+  enabled: z.boolean().optional().default(true),
+});
+
 const AgentConfigSchema = z.object({
   defaultModel: z.string().default("deepseek-chat"),
   defaultProvider: z.enum([
@@ -59,6 +75,8 @@ const MoziConfigSchema = z.object({
   channels: z.object({
     feishu: FeishuConfigSchema.optional(),
     dingtalk: DingtalkConfigSchema.optional(),
+    qq: QQConfigSchema.optional(),
+    wecom: WeComConfigSchema.optional(),
   }).optional().default({}),
   agent: AgentConfigSchema.optional().default({}),
   server: ServerConfigSchema.optional().default({}),
@@ -200,6 +218,37 @@ function loadConfigFromEnv(): Partial<MoziConfig> {
     };
   }
 
+  // QQ 机器人配置
+  const qqAppId = getEnvVar("QQ_APP_ID");
+  const qqClientSecret = getEnvVar("QQ_CLIENT_SECRET");
+  if (qqAppId && qqClientSecret) {
+    config.channels = {
+      ...config.channels,
+      qq: {
+        appId: qqAppId,
+        clientSecret: qqClientSecret,
+        sandbox: getEnvVar("QQ_SANDBOX") === "true",
+      },
+    };
+  }
+
+  // 企业微信配置
+  const wecomCorpId = getEnvVar("WECOM_CORP_ID");
+  const wecomCorpSecret = getEnvVar("WECOM_CORP_SECRET");
+  const wecomAgentId = getEnvVar("WECOM_AGENT_ID");
+  if (wecomCorpId && wecomCorpSecret && wecomAgentId) {
+    config.channels = {
+      ...config.channels,
+      wecom: {
+        corpId: wecomCorpId,
+        corpSecret: wecomCorpSecret,
+        agentId: parseInt(wecomAgentId, 10),
+        token: getEnvVar("WECOM_TOKEN"),
+        encodingAESKey: getEnvVar("WECOM_ENCODING_AES_KEY"),
+      },
+    };
+  }
+
   // 服务器配置
   const port = getEnvVar("PORT");
   if (port) {
@@ -230,6 +279,8 @@ function mergeConfigs(...configs: Partial<MoziConfig>[]): Partial<MoziConfig> {
       result.channels = {
         feishu: config.channels.feishu ?? result.channels?.feishu,
         dingtalk: config.channels.dingtalk ?? result.channels?.dingtalk,
+        qq: config.channels.qq ?? result.channels?.qq,
+        wecom: config.channels.wecom ?? result.channels?.wecom,
       };
     }
 
@@ -298,9 +349,9 @@ export function validateRequiredConfig(config: MoziConfig, options?: { webOnly?:
 
   // 检查是否至少配置了一个通道 (webOnly 模式下可以只使用 WebChat)
   if (!options?.webOnly) {
-    const hasChannel = config.channels.feishu || config.channels.dingtalk;
+    const hasChannel = config.channels.feishu || config.channels.dingtalk || config.channels.qq || config.channels.wecom;
     if (!hasChannel) {
-      errors.push("At least one channel (feishu or dingtalk) must be configured. Use --web-only to run with WebChat only.");
+      errors.push("At least one channel (feishu, dingtalk, qq, or wecom) must be configured. Use --web-only to run with WebChat only.");
     }
   }
 

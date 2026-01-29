@@ -22,7 +22,7 @@ const program = new Command();
 program
   .name("mozi")
   .description("Mozi - 支持国产模型和国产通讯软件的智能助手机器人")
-  .version("1.1.1");
+  .version("1.2.0");
 
 // 启动命令
 program
@@ -30,7 +30,7 @@ program
   .description("启动 Gateway 服务器")
   .option("-c, --config <path>", "配置文件路径")
   .option("-p, --port <port>", "服务器端口")
-  .option("--web-only", "仅启用 WebChat (不需要配置飞书/钉钉)")
+  .option("--web-only", "仅启用 WebChat (不需要配置飞书/钉钉/QQ)")
   .action(async (options) => {
     try {
       const config = loadConfig({ configPath: options.config });
@@ -122,6 +122,7 @@ program
       const channels = [
         { id: "feishu", name: "飞书", config: config.channels.feishu },
         { id: "dingtalk", name: "钉钉", config: config.channels.dingtalk },
+        { id: "qq", name: "QQ", config: config.channels.qq },
       ];
       for (const channel of channels) {
         const status = channel.config ? "✅ 已配置" : "⬜ 未配置";
@@ -495,7 +496,7 @@ program
 
     // 步骤 2: 通道配置
     console.log("\n📱 步骤 2/4: 配置通讯平台\n");
-    console.log("支持的平台: 飞书, 钉钉");
+    console.log("支持的平台: 飞书, 钉钉, QQ");
     console.log("(可选配置，直接回车跳过)\n");
 
     const configFeishu = await question("是否配置飞书? (y/n): ");
@@ -518,6 +519,21 @@ program
         config.channels["dingtalk"] = {
           appKey: dingtalkKey.trim(),
           appSecret: dingtalkSecret.trim(),
+        };
+      }
+    }
+
+    const configQQ = await question("是否配置 QQ 机器人? (y/n): ");
+    if (configQQ.toLowerCase() === "y") {
+      console.log("\n提示: 需要在 QQ 开放平台添加服务器 IP 到白名单");
+      const qqAppId = await question("QQ App ID: ");
+      const qqClientSecret = await question("QQ Client Secret: ");
+      if (qqAppId.trim() && qqClientSecret.trim()) {
+        const qqSandbox = await question("是否使用沙箱环境? (y/n，默认 n): ");
+        config.channels["qq"] = {
+          appId: qqAppId.trim(),
+          clientSecret: qqClientSecret.trim(),
+          sandbox: qqSandbox.toLowerCase() === "y",
         };
       }
     }
@@ -595,8 +611,8 @@ program
     const hasChannels = Object.keys(config.channels || {}).length > 0;
     const startCmd = hasChannels ? "mozi start" : "mozi start --web-only";
     const startNote = hasChannels
-      ? "   (已配置飞书/钉钉，将同时启动)"
-      : "   (仅 WebChat，如需飞书/钉钉请配置 channels)";
+      ? "   (已配置通讯平台，将同时启动)"
+      : "   (仅 WebChat，如需通讯平台请配置 channels)";
 
     console.log(`
 ╔════════════════════════════════════════════════════════════╗
@@ -611,7 +627,7 @@ ${startNote.padEnd(61)}║
 ║   3. 测试聊天: mozi chat                                   ║
 ║                                                            ║
 ║   启动选项:                                                ║
-║   - mozi start           完整服务 (WebChat+飞书+钉钉)      ║
+║   - mozi start           完整服务 (WebChat+飞书+钉钉+QQ)   ║
 ║   - mozi start --web-only 仅 WebChat                       ║
 ║                                                            ║
 ║   配置文件: ~/.mozi/config.local.json5                     ║

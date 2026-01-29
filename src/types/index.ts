@@ -164,7 +164,7 @@ export interface StreamChunk {
 // ============== 通道相关类型 ==============
 
 /** 通道 ID */
-export type ChannelId = "feishu" | "dingtalk" | "webchat";
+export type ChannelId = "feishu" | "dingtalk" | "qq" | "wecom" | "webchat";
 
 /** 聊天类型 */
 export type ChatType = "direct" | "group";
@@ -244,6 +244,25 @@ export interface DingtalkConfig {
   mode?: "stream" | "webhook";
 }
 
+/** QQ 机器人配置 */
+export interface QQConfig {
+  appId: string;
+  clientSecret: string;
+  enabled?: boolean;
+  /** 是否使用沙箱环境 */
+  sandbox?: boolean;
+}
+
+/** 企业微信配置 */
+export interface WeComConfig {
+  corpId: string;
+  corpSecret: string;
+  agentId: number;
+  token?: string;
+  encodingAESKey?: string;
+  enabled?: boolean;
+}
+
 /** Agent 配置 */
 export interface AgentConfig {
   defaultModel: string;
@@ -284,6 +303,8 @@ export interface MoziConfig {
   channels: {
     feishu?: FeishuConfig;
     dingtalk?: DingtalkConfig;
+    qq?: QQConfig;
+    wecom?: WeComConfig;
   };
   agent: AgentConfig;
   server: {

@@ -7,6 +7,8 @@ import { createServer, type Server as HttpServer } from "http";
 import type { MoziConfig, InboundMessageContext } from "../types/index.js";
 import { createFeishuChannel, type FeishuChannel } from "../channels/feishu/index.js";
 import { createDingtalkChannel, type DingtalkChannel } from "../channels/dingtalk/index.js";
+import { createQQChannel, type QQChannel } from "../channels/qq/index.js";
+import { createWeComChannel, type WeComChannel } from "../channels/wecom/index.js";
 import { registerChannel } from "../channels/common/index.js";
 import { createAgent, type Agent } from "../agents/agent.js";
 import { initializeProviders } from "../providers/index.js";
@@ -23,6 +25,8 @@ export class Gateway {
   private agent: Agent;
   private feishuChannel?: FeishuChannel;
   private dingtalkChannel?: DingtalkChannel;
+  private qqChannel?: QQChannel;
+  private wecomChannel?: WeComChannel;
   private wsServer?: WsServer;
   /** 已处理的消息 ID 缓存（用于去重） */
   private processedMessages = new Map<string, number>();
@@ -74,6 +78,23 @@ export class Gateway {
       this.app.use("/dingtalk", this.dingtalkChannel.createRouter());
       registerChannel(this.dingtalkChannel);
       logger.info("DingTalk webhook enabled at /dingtalk/webhook");
+    }
+
+    // QQ 机器人
+    if (this.config.channels.qq) {
+      this.qqChannel = createQQChannel(this.config.channels.qq);
+      this.qqChannel.setMessageHandler(this.handleMessage.bind(this));
+      registerChannel(this.qqChannel);
+      logger.info("QQ bot enabled (WebSocket mode)");
+    }
+
+    // 企业微信
+    if (this.config.channels.wecom) {
+      this.wecomChannel = createWeComChannel(this.config.channels.wecom);
+      this.wecomChannel.setMessageHandler(this.handleMessage.bind(this));
+      this.app.use("/wecom", this.wecomChannel.createRouter());
+      registerChannel(this.wecomChannel);
+      logger.info("WeCom webhook enabled at /wecom/webhook");
     }
 
     // WebChat 静态文件服务 (放在其他路由之后，作为默认处理)
@@ -158,6 +179,18 @@ export class Gateway {
           await this.dingtalkChannel.replyWithSession(dingtalkContext, text);
         }
         break;
+
+      case "qq":
+        if (this.qqChannel) {
+          await this.qqChannel.sendText(context.chatId, text, context.messageId);
+        }
+        break;
+
+      case "wecom":
+        if (this.wecomChannel) {
+          await this.wecomChannel.sendText(context.chatId, text);
+        }
+        break;
     }
   }
 
@@ -203,6 +236,12 @@ export class Gateway {
     if (this.dingtalkChannel) {
       await this.dingtalkChannel.initialize();
     }
+    if (this.qqChannel) {
+      await this.qqChannel.initialize();
+    }
+    if (this.wecomChannel) {
+      await this.wecomChannel.initialize();
+    }
 
     logger.info("Gateway initialized");
   }
@@ -226,6 +265,12 @@ export class Gateway {
       if (this.dingtalkChannel) {
         console.log(`   钉钉 Webhook: http://${host || "localhost"}:${port}/dingtalk/webhook`);
       }
+      if (this.qqChannel) {
+        console.log(`   QQ 机器人: WebSocket 长连接已启动`);
+      }
+      if (this.wecomChannel) {
+        console.log(`   企业微信 Webhook: http://${host || "localhost"}:${port}/wecom/webhook`);
+      }
       console.log("");
     });
   }
@@ -243,6 +288,12 @@ export class Gateway {
     }
     if (this.dingtalkChannel) {
       await this.dingtalkChannel.shutdown();
+    }
+    if (this.qqChannel) {
+      await this.qqChannel.shutdown();
+    }
+    if (this.wecomChannel) {
+      await this.wecomChannel.shutdown();
     }
 
     this.httpServer.close();
