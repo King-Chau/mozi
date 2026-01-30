@@ -1,5 +1,10 @@
 # Mozi (墨子)
 
+<p align="center">
+  <img src="./docs/images/qq.jpg" width="45%" alt="QQ 机器人" />
+  <img src="./docs/images/dingding.jpg" width="45%" alt="钉钉机器人" />
+</p>
+
 **支持国产大模型和国产通讯软件的智能助手框架**
 
 Mozi 是一个轻量级的 AI 助手框架，专注于国产生态。它提供统一的接口对接多种国产 AI 模型（DeepSeek、Qwen、Kimi 等），支持 OpenAI Function Calling，并支持 QQ、飞书、钉钉、企业微信等通讯平台。
