@@ -314,6 +314,14 @@ export interface MoziConfig {
   sessions?: SessionStoreConfig;
   /** Memory 配置 */
   memory?: MemoryConfig;
+  /** Skills 配置 */
+  skills?: {
+    enabled?: boolean;
+    userDir?: string;
+    workspaceDir?: string;
+    disabled?: string[];
+    only?: string[];
+  };
 }
 
 // ============== 事件相关类型 ==============

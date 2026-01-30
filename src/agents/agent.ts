@@ -34,6 +34,8 @@ import {
 import { runWithModelFallback, type FallbackAttempt } from "./model-fallback.js";
 import { buildSystemPrompt } from "./system-prompt.js";
 import { createSessionStore, type SessionStore, type SessionData } from "./session-store.js";
+import { initSkills, type SkillsRegistry } from "../skills/index.js";
+import type { SkillsConfig } from "../skills/types.js";
 
 const logger = getChildLogger("agent");
 
@@ -98,6 +100,7 @@ export class Agent {
   private options: Required<Omit<AgentOptions, "sessionStore">> & { sessionStore: SessionStore };
   private tools: Tool[] = [];
   private openaiTools: OpenAIToolDefinition[] = [];
+  private skillsRegistry: SkillsRegistry | null = null;
 
   constructor(options: AgentOptions) {
     this.options = {
@@ -147,6 +150,11 @@ export class Agent {
     }));
 
     logger.info({ toolCount: this.tools.length }, "Tools initialized");
+  }
+
+  /** 设置 Skills 注册表 */
+  setSkillsRegistry(registry: SkillsRegistry): void {
+    this.skillsRegistry = registry;
   }
 
   /** 注册自定义工具 */
@@ -657,6 +665,7 @@ export class Agent {
       includeToolRules: !this.options.enableFunctionCalling, // 使用原生 FC 时不需要文本规则
       tools: this.options.enableFunctionCalling ? undefined : this.tools,
       additionalContext: history.summary,
+      skillsPrompt: this.skillsRegistry?.buildPrompt(),
     });
 
     messages.push({ role: "system", content: systemContent });
@@ -877,8 +886,8 @@ export class Agent {
 }
 
 /** 创建 Agent */
-export function createAgent(config: MoziConfig): Agent {
-  return new Agent({
+export async function createAgent(config: MoziConfig): Promise<Agent> {
+  const agent = new Agent({
     model: config.agent.defaultModel,
     provider: config.agent.defaultProvider,
     systemPrompt: config.agent.systemPrompt ?? "",
@@ -888,4 +897,20 @@ export function createAgent(config: MoziConfig): Agent {
     enableFunctionCalling: config.agent.enableFunctionCalling ?? true,
     sessionStore: createSessionStore(config.sessions),
   });
+
+  // 加载 Skills
+  if (config.skills?.enabled !== false) {
+    try {
+      const registry = await initSkills(config.skills);
+      agent.setSkillsRegistry(registry);
+      const skillCount = registry.getAll().length;
+      if (skillCount > 0) {
+        logger.info({ skillCount }, "Skills loaded");
+      }
+    } catch (error) {
+      logger.warn({ error }, "Failed to load skills");
+    }
+  }
+
+  return agent;
 }

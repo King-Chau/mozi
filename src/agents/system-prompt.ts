@@ -25,6 +25,8 @@ export interface SystemPromptOptions {
   additionalContext?: string;
   /** 用户名 */
   userName?: string;
+  /** Skills prompt (由 skills registry 构建) */
+  skillsPrompt?: string;
 }
 
 /** 获取平台信息 */
@@ -321,6 +323,12 @@ export function buildSystemPrompt(options: SystemPromptOptions): string {
     if (options.tools.some((t) => t.name === "browser")) {
       sections.push(buildBrowserGuide());
     }
+  }
+
+  // Skills prompt
+  if (options.skillsPrompt) {
+    sections.push("");
+    sections.push(options.skillsPrompt);
   }
 
   // 输出格式指南

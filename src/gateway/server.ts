@@ -22,7 +22,7 @@ export class Gateway {
   private app: Express;
   private httpServer: HttpServer;
   private config: MoziConfig;
-  private agent: Agent;
+  private agent!: Agent;
   private feishuChannel?: FeishuChannel;
   private dingtalkChannel?: DingtalkChannel;
   private qqChannel?: QQChannel;
@@ -37,10 +37,14 @@ export class Gateway {
     this.config = config;
     this.app = express();
     this.httpServer = createServer(this.app);
-    this.agent = createAgent(config);
 
     this.setupMiddleware();
     this.setupRoutes();
+  }
+
+  /** 初始化 Agent（异步） */
+  async initAgent(): Promise<void> {
+    this.agent = await createAgent(this.config);
   }
 
   /** 设置中间件 */
@@ -308,8 +312,10 @@ export class Gateway {
 }
 
 /** 创建 Gateway */
-export function createGateway(config: MoziConfig): Gateway {
-  return new Gateway(config);
+export async function createGateway(config: MoziConfig): Promise<Gateway> {
+  const gateway = new Gateway(config);
+  await gateway.initAgent();
+  return gateway;
 }
 
 /** 启动 Gateway 服务器 */
@@ -317,7 +323,7 @@ export async function startGateway(config: MoziConfig): Promise<Gateway> {
   // 设置日志
   setLogger(createLogger({ level: config.logging.level }));
 
-  const gateway = createGateway(config);
+  const gateway = await createGateway(config);
   await gateway.start();
 
   // 优雅关闭
