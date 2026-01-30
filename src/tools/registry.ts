@@ -160,7 +160,7 @@ export async function executeToolCall(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error({ tool: toolCall.name, error }, "Tool execution failed");
+    logger.error({ tool: toolCall.name, error: message }, "Tool execution failed");
 
     return {
       toolCallId: toolCall.id,
