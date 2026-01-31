@@ -27,6 +27,8 @@ export interface SystemPromptOptions {
   userName?: string;
   /** Skills prompt (由 skills registry 构建) */
   skillsPrompt?: string;
+  /** 是否启用记忆系统（用于注入记忆使用指南） */
+  enableMemory?: boolean;
 }
 
 /** 获取平台信息 */
@@ -259,6 +261,32 @@ function buildBrowserGuide(): string {
 `;
 }
 
+/** 构建记忆工具使用指南 */
+function buildMemoryGuide(): string {
+  return `
+### 记忆系统使用指南
+
+你可以使用记忆工具来存储和检索重要信息。
+
+**主动搜索记忆的时机**:
+当用户的问题涉及以下情况时，你应该**首先**使用 \`memory_search\` 搜索相关记忆：
+- 询问个人信息（如"我是谁"、"我的名字"、"我叫什么"、"我的喜好"等）
+- 提到之前的对话或约定（如"上次说的..."、"之前我们讨论的..."、"你还记得..."）
+- 询问之前记录的事实、笔记或代码片段
+- 任何可能在记忆中有相关信息的问题
+
+**搜索示例**:
+- 用户问"我是谁" → 搜索: \`memory_search({ query: "用户 名字 身份 个人信息" })\`
+- 用户问"之前的配置" → 搜索: \`memory_search({ query: "配置", type: "note" })\`
+
+**存储记忆的时机**:
+当用户明确告诉你需要记住的信息时，使用 \`memory_store\` 存储：
+- "记住我叫..."、"我的名字是..."
+- "把这个保存下来"、"记录一下"
+- 重要的事实、偏好、配置等
+`;
+}
+
 /** 构建输出格式指南 */
 function buildOutputFormatGuide(): string {
   return `
@@ -323,6 +351,16 @@ export function buildSystemPrompt(options: SystemPromptOptions): string {
     if (options.tools.some((t) => t.name === "browser")) {
       sections.push(buildBrowserGuide());
     }
+
+    // 如果有记忆工具，添加记忆使用指南
+    if (options.tools.some((t) => t.name === "memory_search")) {
+      sections.push(buildMemoryGuide());
+    }
+  }
+
+  // 原生 function calling 模式下，单独注入记忆指南
+  if (options.enableMemory && !(options.tools?.some((t) => t.name === "memory_search"))) {
+    sections.push(buildMemoryGuide());
   }
 
   // Skills prompt

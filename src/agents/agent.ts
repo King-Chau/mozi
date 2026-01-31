@@ -675,6 +675,7 @@ export class Agent {
       tools: this.options.enableFunctionCalling ? undefined : this.tools,
       additionalContext: history.summary,
       skillsPrompt: this.skillsRegistry?.buildPrompt(),
+      enableMemory: !!this.options.memoryManager,
     });
 
     messages.push({ role: "system", content: systemContent });
