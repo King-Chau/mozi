@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mozi (墨子) — 国产生态 AI 助手框架</title>
+  <meta name="description" content="支持国产大模型和国产通讯软件的轻量级智能助手框架。DeepSeek、Qwen、Kimi 等模型，QQ、飞书、钉钉、企业微信全平台接入。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-deepest: #050810;
+      --bg-surface: #0a0f1a;
+      --bg-elevated: #111827;
+      --bg-card: #0d1321;
+      --accent-primary: #10b981;
+      --accent-primary-dim: rgba(16, 185, 129, 0.15);
+      --accent-secondary: #3b82f6;
+      --accent-secondary-dim: rgba(59, 130, 246, 0.15);
+      --accent-warm: #f59e0b;
+      --accent-warm-dim: rgba(245, 158, 11, 0.15);
+      --accent-red: #ef4444;
+      --text-primary: #f0f4ff;
+      --text-secondary: #8892b0;
+      --text-muted: #5a6480;
+      --border-color: rgba(136, 146, 176, 0.12);
+      --border-accent: rgba(16, 185, 129, 0.3);
+      --glow-green: rgba(16, 185, 129, 0.4);
+      --glow-blue: rgba(59, 130, 246, 0.3);
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+      background: var(--accent-primary);
+      color: var(--bg-deepest);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-deepest);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    a:hover { color: #34d399; }
+
+    code, .mono {
+      font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ==================== NAV ==================== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(5, 8, 16, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+    }
+    .nav-brand .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--accent-primary);
+      color: var(--bg-deepest) !important;
+      font-weight: 600;
+      font-size: 0.875rem;
+      border-radius: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px var(--glow-green);
+      color: var(--bg-deepest) !important;
+    }
+    .nav-mobile-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* ==================== HERO ==================== */
+    .hero {
+      padding: 160px 0 100px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, var(--glow-green) 0%, transparent 70%);
+      opacity: 0.08;
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--accent-primary-dim);
+      border: 1px solid var(--border-accent);
+      border-radius: 24px;
+      font-size: 0.85rem;
+      color: var(--accent-primary);
+      font-weight: 500;
+      margin-bottom: 28px;
+    }
+    .hero-badge .badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, #3b82f6 50%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      color: var(--text-secondary);
+      font-weight: 400;
+      max-width: 640px;
+      margin: 16px auto 0;
+      line-height: 1.5;
+    }
+    .hero-subtitle strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 44px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.25s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--accent-primary);
+      color: var(--bg-deepest);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--glow-green);
+      color: var(--bg-deepest);
+    }
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      transform: translateY(-2px);
+      color: var(--text-primary);
+    }
+    .hero-install {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .install-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .install-box:hover { border-color: var(--border-accent); }
+    .install-box .prompt { color: var(--accent-primary); }
+    .install-box .cmd { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+    .install-box .copy-hint {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ==================== SECTION ==================== */
+    .section {
+      padding: 100px 0;
+      position: relative;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--accent-primary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+    .section-tag::before {
+      content: '›';
+      font-size: 1.2rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+    .section-desc {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 16px auto 0;
+    }
+
+    /* ==================== FEATURES GRID ==================== */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 32px 28px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feature-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-4px);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    .feature-icon.green { background: var(--accent-primary-dim); }
+    .feature-icon.blue { background: var(--accent-secondary-dim); }
+    .feature-icon.amber { background: var(--accent-warm-dim); }
+    .feature-icon.red { background: rgba(239, 68, 68, 0.15); }
+    .feature-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* ==================== PROVIDERS ==================== */
+    .providers-section {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .providers-group {
+      margin-bottom: 48px;
+    }
+    .providers-group:last-child { margin-bottom: 0; }
+    .providers-group-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .providers-logos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+    }
+    .provider-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.2s;
+    }
+    .provider-chip:hover {
+      border-color: var(--border-accent);
+      color: var(--text-primary);
+    }
+    .provider-chip .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .dot-green { background: #10b981; }
+    .dot-blue { background: #3b82f6; }
+    .dot-purple { background: #8b5cf6; }
+    .dot-orange { background: #f59e0b; }
+    .dot-red { background: #ef4444; }
+    .dot-cyan { background: #06b6d4; }
+    .dot-pink { background: #ec4899; }
+
+    /* ==================== CHANNELS ==================== */
+    .channels-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .channel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 36px 24px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    .channel-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-4px);
+    }
+    .channel-icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+    .channel-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .channel-card .channel-mode {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    .mode-ws {
+      background: var(--accent-primary-dim);
+      color: var(--accent-primary);
+    }
+    .mode-http {
+      background: var(--accent-warm-dim);
+      color: var(--accent-warm);
+    }
+    .channel-card p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* ==================== QUICK START ==================== */
+    .quickstart-section { }
+    .quickstart-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .qs-tab {
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .qs-tab:hover { color: var(--text-secondary); }
+    .qs-tab.active {
+      background: var(--bg-elevated);
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+    .qs-panel { display: none; }
+    .qs-panel.active { display: block; }
+    .code-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      overflow: hidden;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-elevated);
+    }
+    .code-header .dots {
+      display: flex;
+      gap: 6px;
+    }
+    .code-header .dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .code-header .dots span:nth-child(1) { background: #ef4444; }
+    .code-header .dots span:nth-child(2) { background: #f59e0b; }
+    .code-header .dots span:nth-child(3) { background: #10b981; }
+    .code-header .filename {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .code-body {
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .code-body .comment { color: var(--text-muted); }
+    .code-body .cmd { color: var(--text-primary); }
+    .code-body .prompt { color: var(--accent-primary); user-select: none; }
+    .code-body .flag { color: var(--accent-secondary); }
+    .code-body .string { color: var(--accent-warm); }
+
+    /* ==================== TOOLS ==================== */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .tool-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+    .tool-item:hover {
+      border-color: var(--border-accent);
+    }
+    .tool-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .tool-info h4 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .tool-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ==================== COMPARISON ==================== */
+    .comparison-table {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .comparison-table th,
+    .comparison-table td {
+      padding: 16px 24px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.9rem;
+    }
+    .comparison-table th {
+      background: var(--bg-elevated);
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .comparison-table td:first-child {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .comparison-table td {
+      color: var(--text-secondary);
+    }
+    .highlight-cell {
+      color: var(--accent-primary) !important;
+      font-weight: 600 !important;
+    }
+
+    /* ==================== ARCHITECTURE ==================== */
+    .arch-visual {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 48px 40px;
+    }
+    .arch-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      align-items: center;
+    }
+    .arch-layer {
+      width: 100%;
+      text-align: center;
+    }
+    .arch-layer-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .arch-nodes {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .arch-node {
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid;
+    }
+    .arch-node.input {
+      background: var(--accent-secondary-dim);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: var(--accent-secondary);
+    }
+    .arch-node.core {
+      background: var(--accent-primary-dim);
+      border-color: var(--border-accent);
+      color: var(--accent-primary);
+    }
+    .arch-node.provider {
+      background: rgba(139, 92, 246, 0.12);
+      border-color: rgba(139, 92, 246, 0.3);
+      color: #a78bfa;
+    }
+    .arch-node.tool {
+      background: var(--accent-warm-dim);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: var(--accent-warm);
+    }
+    .arch-arrow {
+      color: var(--text-muted);
+      font-size: 1.5rem;
+    }
+
+    /* ==================== CTA ==================== */
+    .cta-section {
+      padding: 100px 0;
+      text-align: center;
+      position: relative;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--glow-blue) 0%, transparent 70%);
+      opacity: 0.06;
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .cta-section p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 500px;
+      margin: 0 auto 36px;
+    }
+
+    /* ==================== FOOTER ==================== */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 48px 0;
+    }
+    .footer-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .footer-brand .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .footer-links {
+      display: flex;
+      gap: 28px;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .channels-grid { grid-template-columns: repeat(2, 1fr); }
+      .tools-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .nav-mobile-toggle { display: block; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: var(--bg-surface);
+        border-bottom: 1px solid var(--border-color);
+        padding: 20px 24px;
+        gap: 16px;
+      }
+      .hero { padding: 130px 0 70px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .channels-grid { grid-template-columns: 1fr; }
+      .tools-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 28px; }
+      .hero-actions { flex-direction: column; }
+      .arch-visual { padding: 28px 20px; }
+      .footer-content { flex-direction: column; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="container">
+      <div class="nav-brand">
+        <div class="logo-icon">M</div>
+        <span>Mozi</span>
+      </div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#providers">Models</a></li>
+        <li><a href="#channels">Channels</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li><a href="https://github.com/King-Chau/mozi" target="_blank" class="nav-cta">GitHub &rarr;</a></li>
+      </ul>
+      <button class="nav-mobile-toggle" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        v1.6.2 &mdash; 专注国产生态
+      </div>
+      <h1>
+        <span class="gradient-text">Mozi</span> 墨子
+      </h1>
+      <p class="hero-subtitle">
+        支持<strong>国产大模型</strong>和<strong>国产通讯软件</strong>的轻量级 AI 助手框架。<br />
+        用 3% 的代码量实现核心功能，简洁高效，易于二次开发。
+      </p>
+      <div class="hero-actions">
+        <a href="#quickstart" class="btn btn-primary">Quick Start &darr;</a>
+        <a href="https://github.com/King-Chau/mozi" target="_blank" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <div class="hero-install">
+        <div class="install-box" onclick="copyInstall(this)">
+          <span class="prompt">$</span>
+          <span class="cmd">npm install -g mozi-bot</span>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-value">~16K</div>
+          <div class="stat-label">Lines of Code</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">12+</div>
+          <div class="stat-label">Model Providers</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Chat Platforms</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">20</div>
+          <div class="stat-label">Built-in Tools</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">What It Does</div>
+        <h2 class="section-title">为国产生态而生的 AI Agent</h2>
+        <p class="section-desc">统一接口对接多种国产 AI 模型，原生支持国产通讯平台，开箱即用</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon green">&#x1f916;</div>
+          <h3>多模型支持</h3>
+          <p>DeepSeek、Qwen、智谱AI、Kimi、阶跃星辰、MiniMax，以及 OpenAI/Anthropic 兼容格式。统一接口，自由切换。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">&#x1f4ac;</div>
+          <h3>多平台通道</h3>
+          <p>QQ、飞书、钉钉、企业微信原生支持。长连接模式无需公网 IP，启动即可接收消息。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon amber">&#x1f527;</div>
+          <h3>Function Calling</h3>
+          <p>原生支持 OpenAI tools/tool_choice 参数，20 个内置工具涵盖文件操作、Bash 执行、网络搜索等。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">&#x1f9e0;</div>
+          <h3>记忆系统</h3>
+          <p>跨会话长期记忆，自动记住用户偏好和重要信息。无需手动触发，Agent 智能判断存储时机。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">&#x1f3af;</div>
+          <h3>Skills 技能系统</h3>
+          <p>通过 SKILL.md 文件扩展 Agent 能力。支持自定义行为、专业知识注入，无需修改代码。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon amber">&#x26a1;</div>
+          <h3>轻量高效</h3>
+          <p>~16,000 行代码实现完整 Agent 核心功能。代码结构清晰，适合学习 Agent 架构设计和二次开发。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROVIDERS -->
+  <section class="section providers-section" id="providers">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Models</div>
+        <h2 class="section-title">支持 12+ 模型提供商</h2>
+        <p class="section-desc">国产模型优先，兼容 OpenAI/Anthropic 格式，支持本地部署</p>
+      </div>
+      <div class="providers-group">
+        <div class="providers-group-title">国产模型</div>
+        <div class="providers-logos">
+          <div class="provider-chip"><span class="dot dot-blue"></span>DeepSeek</div>
+          <div class="provider-chip"><span class="dot dot-orange"></span>DashScope (Qwen)</div>
+          <div class="provider-chip"><span class="dot dot-green"></span>智谱 AI (GLM)</div>
+          <div class="provider-chip"><span class="dot dot-purple"></span>Kimi / Moonshot</div>
+          <div class="provider-chip"><span class="dot dot-cyan"></span>阶跃星辰</div>
+          <div class="provider-chip"><span class="dot dot-pink"></span>MiniMax</div>
+          <div class="provider-chip"><span class="dot dot-orange"></span>ModelScope</div>
+        </div>
+      </div>
+      <div class="providers-group">
+        <div class="providers-group-title">海外 &amp; 本地</div>
+        <div class="providers-logos">
+          <div class="provider-chip"><span class="dot dot-green"></span>OpenAI</div>
+          <div class="provider-chip"><span class="dot dot-purple"></span>OpenRouter</div>
+          <div class="provider-chip"><span class="dot dot-blue"></span>Together AI</div>
+          <div class="provider-chip"><span class="dot dot-orange"></span>Groq</div>
+          <div class="provider-chip"><span class="dot dot-cyan"></span>Ollama (Local)</div>
+          <div class="provider-chip"><span class="dot dot-red"></span>Custom API</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHANNELS -->
+  <section class="section" id="channels">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Channels</div>
+        <h2 class="section-title">全平台通讯接入</h2>
+        <p class="section-desc">长连接模式无需公网 IP，无需回调地址，启动即用</p>
+      </div>
+      <div class="channels-grid">
+        <div class="channel-card">
+          <div class="channel-icon">&#x1f4e8;</div>
+          <h3>飞书</h3>
+          <span class="channel-mode mode-ws">WebSocket 长连接</span>
+          <p>企业自建应用，支持私聊与群聊</p>
+        </div>
+        <div class="channel-card">
+          <div class="channel-icon">&#x1f4e9;</div>
+          <h3>钉钉</h3>
+          <span class="channel-mode mode-ws">Stream 长连接</span>
+          <p>机器人类型应用，内网即可部署</p>
+        </div>
+        <div class="channel-card">
+          <div class="channel-icon">&#x1f4ac;</div>
+          <h3>QQ</h3>
+          <span class="channel-mode mode-ws">WebSocket 长连接</span>
+          <p>官方机器人 API，支持私聊、群聊、频道</p>
+        </div>
+        <div class="channel-card">
+          <div class="channel-icon">&#x1f4bc;</div>
+          <h3>企业微信</h3>
+          <span class="channel-mode mode-http">HTTP 回调</span>
+          <p>API 模式，需公网可访问地址</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <section class="section quickstart-section" id="quickstart">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Quick Start</div>
+        <h2 class="section-title">三步启动</h2>
+        <p class="section-desc">从安装到对话，只需几条命令</p>
+      </div>
+      <div class="quickstart-tabs">
+        <button class="qs-tab active" onclick="switchTab('npm')">npm</button>
+        <button class="qs-tab" onclick="switchTab('clone')">Git Clone</button>
+      </div>
+      <div class="qs-panel active" id="panel-npm">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span class="filename">terminal</span>
+          </div>
+          <div class="code-body">
+            <div><span class="comment"># 1. Install globally</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">npm install <span class="flag">-g</span> mozi-bot</span></div>
+            <br />
+            <div><span class="comment"># 2. Configure (interactive wizard)</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">mozi onboard</span></div>
+            <br />
+            <div><span class="comment"># 3. Start WebChat</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">mozi start <span class="flag">--web-only</span></span></div>
+            <br />
+            <div><span class="comment"># Open http://localhost:3000 and start chatting!</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="qs-panel" id="panel-clone">
+        <div class="code-block">
+          <div class="code-header">
+            <div class="dots"><span></span><span></span><span></span></div>
+            <span class="filename">terminal</span>
+          </div>
+          <div class="code-body">
+            <div><span class="comment"># 1. Clone &amp; build</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">git clone <span class="string">https://github.com/King-Chau/mozi.git</span></span></div>
+            <div><span class="prompt">$ </span><span class="cmd">cd mozi && npm install && npm run build</span></div>
+            <br />
+            <div><span class="comment"># 2. Configure</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">npx mozi onboard</span></div>
+            <br />
+            <div><span class="comment"># 3. Start</span></div>
+            <div><span class="prompt">$ </span><span class="cmd">npm start <span class="flag">--</span> start <span class="flag">--web-only</span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section class="section" id="tools" style="background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Built-in Tools</div>
+        <h2 class="section-title">20 个内置工具</h2>
+        <p class="section-desc">原生 Function Calling，涵盖文件操作、命令执行、网络、多媒体等</p>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-item">
+          <span class="tool-icon">&#128196;</span>
+          <div class="tool-info"><h4>read_file</h4><p>读取文件内容</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#9999;&#65039;</span>
+          <div class="tool-info"><h4>write_file</h4><p>写入/创建文件</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128295;</span>
+          <div class="tool-info"><h4>edit_file</h4><p>精确字符串替换</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128269;</span>
+          <div class="tool-info"><h4>glob / grep</h4><p>文件与内容搜索</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128187;</span>
+          <div class="tool-info"><h4>bash</h4><p>执行 Bash 命令</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#127760;</span>
+          <div class="tool-info"><h4>web_search</h4><p>网络搜索</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128230;</span>
+          <div class="tool-info"><h4>web_fetch</h4><p>获取网页内容</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128248;</span>
+          <div class="tool-info"><h4>browser</h4><p>浏览器自动化</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128444;&#65039;</span>
+          <div class="tool-info"><h4>image_analyze</h4><p>图像分析</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#128337;</span>
+          <div class="tool-info"><h4>current_time</h4><p>获取当前时间</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#129504;</span>
+          <div class="tool-info"><h4>memory_*</h4><p>长期记忆系统</p></div>
+        </div>
+        <div class="tool-item">
+          <span class="tool-icon">&#129302;</span>
+          <div class="tool-info"><h4>subagent</h4><p>子 Agent 任务分解</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARISON -->
+  <section class="section" id="comparison">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Why Mozi</div>
+        <h2 class="section-title">轻量但完整</h2>
+        <p class="section-desc">3% 的代码量，100% 的核心能力</p>
+      </div>
+      <div class="comparison-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Mozi</th>
+              <th>Moltbot</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>定位</td>
+              <td class="highlight-cell">国产生态优先</td>
+              <td>全功能个人 AI 助手</td>
+            </tr>
+            <tr>
+              <td>代码量</td>
+              <td class="highlight-cell">~16,000 行</td>
+              <td>~516,000 行</td>
+            </tr>
+            <tr>
+              <td>国产通讯</td>
+              <td class="highlight-cell">QQ / 飞书 / 钉钉 / 企微</td>
+              <td>WhatsApp / Telegram / Slack</td>
+            </tr>
+            <tr>
+              <td>Node.js</td>
+              <td class="highlight-cell">&gt;= 18</td>
+              <td>&gt;= 22</td>
+            </tr>
+            <tr>
+              <td>适用场景</td>
+              <td class="highlight-cell">企业内部 / 国内团队</td>
+              <td>个人多设备 / 海外平台</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="section" id="architecture" style="background: var(--bg-surface); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Architecture</div>
+        <h2 class="section-title">清晰的分层架构</h2>
+        <p class="section-desc">输入层 &rarr; 网关层 &rarr; Agent 核心 &rarr; 模型 &amp; 工具</p>
+      </div>
+      <div class="arch-visual">
+        <div class="arch-flow">
+          <div class="arch-layer">
+            <div class="arch-layer-title">Input Layer &mdash; 通讯平台</div>
+            <div class="arch-nodes">
+              <span class="arch-node input">飞书 (WebSocket)</span>
+              <span class="arch-node input">钉钉 (Stream)</span>
+              <span class="arch-node input">QQ (WebSocket)</span>
+              <span class="arch-node input">企微 (HTTP)</span>
+              <span class="arch-node input">WebChat</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer">
+            <div class="arch-layer-title">Gateway &mdash; HTTP / WebSocket 路由</div>
+            <div class="arch-nodes">
+              <span class="arch-node core">Gateway Server</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer">
+            <div class="arch-layer-title">Core &mdash; Agent 引擎</div>
+            <div class="arch-nodes">
+              <span class="arch-node core">消息循环</span>
+              <span class="arch-node core">上下文压缩</span>
+              <span class="arch-node core">会话管理</span>
+              <span class="arch-node core">Skills 技能</span>
+              <span class="arch-node core">记忆系统</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer">
+            <div class="arch-layer-title">Providers &mdash; AI 模型</div>
+            <div class="arch-nodes">
+              <span class="arch-node provider">DeepSeek</span>
+              <span class="arch-node provider">Qwen</span>
+              <span class="arch-node provider">智谱AI</span>
+              <span class="arch-node provider">Kimi</span>
+              <span class="arch-node provider">OpenAI</span>
+              <span class="arch-node provider">Anthropic</span>
+            </div>
+          </div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer">
+            <div class="arch-layer-title">Tools &mdash; 20 个内置工具</div>
+            <div class="arch-nodes">
+              <span class="arch-node tool">文件操作</span>
+              <span class="arch-node tool">Bash 执行</span>
+              <span class="arch-node tool">网络请求</span>
+              <span class="arch-node tool">浏览器自动化</span>
+              <span class="arch-node tool">记忆系统</span>
+              <span class="arch-node tool">子 Agent</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>开始使用 <span style="background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Mozi</span></h2>
+      <p>三步启动你的国产 AI 助手，支持企业内部部署与团队协作</p>
+      <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+        <a href="https://github.com/King-Chau/mozi" target="_blank" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+        <a href="https://www.npmjs.com/package/mozi-bot" target="_blank" class="btn btn-secondary">npm &middot; mozi-bot</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="logo-icon">M</div>
+          <span>Mozi (墨子)</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/King-Chau/mozi" target="_blank">GitHub</a>
+          <a href="https://www.npmjs.com/package/mozi-bot" target="_blank">npm</a>
+          <a href="https://github.com/King-Chau/mozi/issues" target="_blank">Issues</a>
+          <a href="https://github.com/King-Chau/mozi#readme" target="_blank">Docs</a>
+        </div>
+        <div class="footer-copy">
+          Apache 2.0 License &middot; Built by <a href="https://github.com/King-Chau" target="_blank">King-Chau</a> &amp; Community
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Quick Start tab switching
+    function switchTab(tab) {
+      document.querySelectorAll('.qs-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.qs-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`#panel-${tab}`).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Copy install command
+    function copyInstall(el) {
+      navigator.clipboard.writeText('npm install -g mozi-bot').then(() => {
+        const hint = el.querySelector('.copy-hint');
+        hint.textContent = 'copied!';
+        setTimeout(() => hint.textContent = 'click to copy', 2000);
+      });
+    }
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Close mobile nav
+          document.getElementById('navLinks').classList.remove('open');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
