@@ -1,51 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
   <defs>
-    <linearGradient id="glassGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981"/>
-      <stop offset="100%" style="stop-color:#3b82f6"/>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
     </linearGradient>
-    <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.2"/>
-    </filter>
   </defs>
 
-  <!-- 身体 (简单的圆润形状) -->
-  <ellipse cx="60" cy="85" rx="28" ry="22" fill="#1a2332"/>
+  <!-- 背景 -->
+  <circle cx="40" cy="40" r="38" fill="#0f172a"/>
 
-  <!-- 领口装饰 -->
-  <path d="M48 68 L60 75 L72 68" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
+  <!-- 耳朵（三角竖耳） -->
+  <path d="M12 30 L22 8 L30 28 Z" fill="#d4a054"/>
+  <path d="M15 28 L22 12 L28 26 Z" fill="#fca5a5" opacity="0.3"/>
+  <path d="M50 28 L58 8 L68 30 Z" fill="#d4a054"/>
+  <path d="M52 26 L58 12 L65 28 Z" fill="#fca5a5" opacity="0.3"/>
 
-  <!-- 头部 (大大的圆脸) -->
-  <circle cx="60" cy="45" r="32" fill="#fde8d7" filter="url(#shadow)"/>
+  <!-- 头（柴犬特有的宽脸） -->
+  <ellipse cx="40" cy="46" rx="26" ry="22" fill="#e8a840"/>
+
+  <!-- 白色脸部 -->
+  <ellipse cx="40" cy="52" rx="18" ry="16" fill="#fff8f0"/>
+
+  <!-- 额头白色 -->
+  <path d="M32 34 Q40 28 48 34 L46 40 Q40 36 34 40 Z" fill="#fff8f0"/>
+
+  <!-- 眼睛 -->
+  <ellipse cx="30" cy="44" rx="4" ry="5" fill="#1a1a2e"/>
+  <circle cx="31" cy="43" r="1.5" fill="white"/>
+  <ellipse cx="50" cy="44" rx="4" ry="5" fill="#1a1a2e"/>
+  <circle cx="51" cy="43" r="1.5" fill="white"/>
+
+  <!-- 眉毛（柴犬特征） -->
+  <ellipse cx="30" cy="38" rx="4" ry="1.5" fill="#c4903c"/>
+  <ellipse cx="50" cy="38" rx="4" ry="1.5" fill="#c4903c"/>
 
   <!-- 腮红 -->
-  <ellipse cx="35" cy="52" rx="6" ry="4" fill="#ffb3b3" opacity="0.5"/>
-  <ellipse cx="85" cy="52" rx="6" ry="4" fill="#ffb3b3" opacity="0.5"/>
+  <ellipse cx="20" cy="50" rx="4" ry="2.5" fill="#fca5a5" opacity="0.4"/>
+  <ellipse cx="60" cy="50" rx="4" ry="2.5" fill="#fca5a5" opacity="0.4"/>
 
-  <!-- 发髻 (简化的小圆髻) -->
-  <circle cx="60" cy="15" r="10" fill="#1a1a2e"/>
-  <rect x="56" y="15" width="8" height="10" fill="#1a1a2e"/>
-  <!-- LED 小灯 -->
-  <circle cx="60" cy="12" r="3" fill="#10b981">
+  <!-- 鼻子 -->
+  <ellipse cx="40" cy="52" rx="4" ry="3" fill="#1a1a2e"/>
+  <ellipse cx="39" cy="51" rx="1" ry="0.8" fill="white" opacity="0.3"/>
+
+  <!-- 嘴 -->
+  <path d="M40 55 L40 58" stroke="#1a1a2e" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M34 60 Q40 64 46 60" stroke="#1a1a2e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- 项圈 -->
+  <path d="M18 66 Q40 74 62 66" stroke="#10b981" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- 项圈吊牌 -->
+  <circle cx="40" cy="72" r="4" fill="url(#g)">
     <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
   </circle>
-
-  <!-- 头发刘海 -->
-  <path d="M35 35 Q40 25 60 22 Q80 25 85 35 Q75 32 60 32 Q45 32 35 35" fill="#1a1a2e"/>
-
-  <!-- VR眼镜 (简化可爱版) -->
-  <rect x="30" y="38" width="60" height="20" rx="10" fill="#111827"/>
-  <!-- 镜片 -->
-  <rect x="34" y="42" width="22" height="12" rx="4" fill="url(#glassGlow)" opacity="0.9"/>
-  <rect x="64" y="42" width="22" height="12" rx="4" fill="url(#glassGlow)" opacity="0.9"/>
-  <!-- 镜片反光 -->
-  <rect x="36" y="44" width="8" height="3" rx="1" fill="white" opacity="0.4"/>
-  <rect x="66" y="44" width="8" height="3" rx="1" fill="white" opacity="0.4"/>
-
-  <!-- 可爱的小嘴 -->
-  <path d="M54 60 Q60 65 66 60" fill="none" stroke="#5a4a42" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- 小手 (简化为圆形) -->
-  <circle cx="30" cy="88" r="8" fill="#fde8d7"/>
-  <circle cx="90" cy="88" r="8" fill="#fde8d7"/>
 </svg>
