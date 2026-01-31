@@ -6,6 +6,19 @@
     </linearGradient>
   </defs>
 
+  <style>
+    @keyframes wink {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.1); }
+    }
+    @keyframes hide {
+      0%, 90%, 100% { opacity: 1; }
+      95% { opacity: 0; }
+    }
+    .left-eye { animation: wink 3s infinite; transform-origin: 30px 44px; }
+    .left-highlight { animation: hide 3s infinite; }
+  </style>
+
   <!-- 背景 -->
   <circle cx="40" cy="40" r="38" fill="#0f172a"/>
 
@@ -24,9 +37,11 @@
   <!-- 额头白色 -->
   <path d="M32 34 Q40 28 48 34 L46 40 Q40 36 34 40 Z" fill="#fff8f0"/>
 
-  <!-- 眼睛 -->
-  <ellipse cx="30" cy="44" rx="4" ry="5" fill="#1a1a2e"/>
-  <circle cx="31" cy="43" r="1.5" fill="white"/>
+  <!-- 左眼（wink 动画） -->
+  <ellipse class="left-eye" cx="30" cy="44" rx="4" ry="5" fill="#1a1a2e"/>
+  <circle class="left-highlight" cx="31" cy="43" r="1.5" fill="white"/>
+
+  <!-- 右眼（正常） -->
   <ellipse cx="50" cy="44" rx="4" ry="5" fill="#1a1a2e"/>
   <circle cx="51" cy="43" r="1.5" fill="white"/>
 
