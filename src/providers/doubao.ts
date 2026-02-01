@@ -10,6 +10,78 @@ const DOUBAO_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
 
 /** 豆包模型定义 */
 const DOUBAO_MODELS: ModelDefinition[] = [
+  // ========== Doubao Seed 深度思考系列（推荐）==========
+  {
+    id: "doubao-seed-1-8-251228",
+    name: "豆包 Seed 1.8（最强多模态 Agent）",
+    provider: "doubao",
+    api: "openai-compatible",
+    contextWindow: 262144,    // 256k
+    maxTokens: 32768,         // 最大回答 32k
+    supportsVision: true,     // 多模态理解
+    supportsReasoning: true,  // 深度思考
+    cost: {
+      input: 4.0,
+      output: 16.0,
+    },
+  },
+  {
+    id: "doubao-seed-1-6-lite-251015",
+    name: "豆包 Seed 1.6 Lite",
+    provider: "doubao",
+    api: "openai-compatible",
+    contextWindow: 262144,
+    maxTokens: 32768,
+    supportsVision: true,
+    supportsReasoning: true,
+    cost: {
+      input: 2.0,
+      output: 8.0,
+    },
+  },
+  {
+    id: "doubao-seed-1-6-flash-250828",
+    name: "豆包 Seed 1.6 Flash（视觉定位）",
+    provider: "doubao",
+    api: "openai-compatible",
+    contextWindow: 262144,
+    maxTokens: 32768,
+    supportsVision: true,
+    supportsReasoning: true,
+    cost: {
+      input: 1.0,
+      output: 4.0,
+    },
+  },
+  {
+    id: "doubao-seed-1-6-vision-250815",
+    name: "豆包 Seed 1.6 Vision（GUI 任务）",
+    provider: "doubao",
+    api: "openai-compatible",
+    contextWindow: 262144,
+    maxTokens: 32768,
+    supportsVision: true,
+    supportsReasoning: true,
+    cost: {
+      input: 2.0,
+      output: 8.0,
+    },
+  },
+  {
+    id: "doubao-seed-code-preview-251028",
+    name: "豆包 Seed Code（编程增强）",
+    provider: "doubao",
+    api: "openai-compatible",
+    contextWindow: 262144,
+    maxTokens: 32768,
+    supportsVision: true,
+    supportsReasoning: true,
+    cost: {
+      input: 4.0,
+      output: 16.0,
+    },
+  },
+
   // ========== Doubao 1.5 Pro 系列 ==========
   {
     id: "doubao-1.5-pro-4k",
