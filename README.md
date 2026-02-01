@@ -17,11 +17,11 @@
 
 **支持国产大模型和国产通讯软件的智能助手框架**
 
-Mozi 是一个轻量级的 AI 助手框架，专注于国产生态。它提供统一的接口对接多种国产 AI 模型（DeepSeek、Qwen、Kimi 等），支持 OpenAI Function Calling，并支持 QQ、飞书、钉钉、企业微信等通讯平台。
+Mozi 是一个轻量级的 AI 助手框架，专注于国产生态。它提供统一的接口对接多种国产 AI 模型（DeepSeek、豆包、Qwen、Kimi 等），支持 OpenAI Function Calling，并支持 QQ、飞书、钉钉、企业微信等通讯平台。
 
 ## 核心特性
 
-- **多模型支持** — DeepSeek、DashScope (Qwen)、智谱AI、Kimi、阶跃星辰、MiniMax，以及 OpenAI/Anthropic 兼容格式
+- **多模型支持** — DeepSeek、豆包、DashScope (Qwen)、智谱AI、Kimi、阶跃星辰、MiniMax，以及 OpenAI/Anthropic 兼容格式
 - **多平台通道** — QQ、飞书、钉钉、企业微信，统一的消息处理接口
 - **Function Calling** — 原生支持 OpenAI tools/tool_choice 参数
 - **20 内置工具** — 文件读写、Bash 执行、代码搜索、网页获取、图像分析、浏览器自动化、记忆系统等
@@ -72,7 +72,7 @@ mozi onboard
 ```
 
 向导会引导你完成以下配置：
-- **国产模型** — DeepSeek、智谱AI、DashScope、Kimi、阶跃星辰、MiniMax、ModelScope
+- **国产模型** — DeepSeek、豆包、智谱AI、DashScope、Kimi、阶跃星辰、MiniMax、ModelScope
 - **自定义 OpenAI 兼容接口** — 支持任意 OpenAI API 格式的服务（如 vLLM、Ollama）
 - **自定义 Anthropic 兼容接口** — 支持任意 Claude API 格式的服务
 - **通讯平台** — QQ、飞书、钉钉、企业微信
@@ -530,11 +530,12 @@ flowchart TB
     subgraph External["🔗 外部依赖"]
         subgraph Providers["模型提供商"]
             P1["DeepSeek"]
-            P2["DashScope"]
-            P3["智谱AI"]
-            P4["Kimi"]
-            P5["OpenAI"]
-            P6["Anthropic"]
+            P2["豆包"]
+            P3["DashScope"]
+            P4["智谱AI"]
+            P5["Kimi"]
+            P6["OpenAI"]
+            P7["Anthropic"]
         end
 
         subgraph Tools["工具系统"]
