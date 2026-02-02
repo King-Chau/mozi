@@ -60,6 +60,8 @@ const AgentConfigSchema = z.object({
   systemPrompt: z.string().optional(),
   temperature: z.number().min(0).max(2).optional().default(0.7),
   maxTokens: z.number().optional().default(4096),
+  workingDirectory: z.string().optional(),
+  enableFunctionCalling: z.boolean().optional(),
 });
 
 const ServerConfigSchema = z.object({
