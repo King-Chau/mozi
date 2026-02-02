@@ -38,6 +38,7 @@ import { initSkills, type SkillsRegistry } from "../skills/index.js";
 import type { SkillsConfig } from "../skills/types.js";
 import { createMemoryManager, type MemoryManager } from "../memory/index.js";
 import { CronService, getCronService } from "../cron/service.js";
+import { createDefaultCronExecuteJob } from "../cron/executor.js";
 
 const logger = getChildLogger("agent");
 
@@ -916,14 +917,51 @@ export async function createAgent(config: MoziConfig): Promise<Agent> {
     logger.info({ directory: config.memory.directory }, "Memory system initialized");
   }
 
+  // 声明 agent 变量（用于闭包）
+  let agent: Agent;
+
+  // 创建 agentExecutor（用于 cron 任务执行 agentTurn）
+  const agentExecutor = async (params: {
+    message: string;
+    sessionKey?: string;
+    model?: string;
+    timeoutSeconds?: number;
+  }) => {
+    if (!agent) {
+      return { success: false, output: "", error: "Agent not initialized" };
+    }
+
+    try {
+      // 使用 processMessage 执行 AI 对话
+      const response = await agent.processMessage({
+        channelId: "webchat",
+        chatId: params.sessionKey ?? `cron-${Date.now()}`,
+        chatType: "direct",
+        senderId: "cron-system",
+        content: params.message,
+        messageId: `cron-${Date.now()}`,
+        timestamp: Date.now(),
+      });
+
+      return {
+        success: true,
+        output: response.content,
+      };
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err);
+      return { success: false, output: "", error };
+    }
+  };
+
+  // 创建 cron 执行器
+  const cronExecuteJob = createDefaultCronExecuteJob({
+    agentExecutor,
+  });
+
   // 初始化 CronService
   const cronService = getCronService({
     enabled: true,
-    executeJob: async (job) => {
-      // 简单的系统消息执行
-      logger.info({ jobId: job.id, jobName: job.name, payload: job.payload }, "Cron job executed");
-      return { status: "ok" as const };
-    },
+    executeJob: cronExecuteJob,
     onEvent: (event) => {
       logger.debug({ event }, "Cron event");
     },
@@ -931,7 +969,7 @@ export async function createAgent(config: MoziConfig): Promise<Agent> {
   cronService.start();
   logger.info("Cron service initialized");
 
-  const agent = new Agent({
+  agent = new Agent({
     model: config.agent.defaultModel,
     provider: config.agent.defaultProvider,
     systemPrompt: config.agent.systemPrompt ?? "",

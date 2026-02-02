@@ -153,3 +153,41 @@ export {
   type EmbeddingProvider,
   type MemoryManagerConfig,
 } from "./memory/index.js";
+
+// Outbound (主动发消息)
+export {
+  deliverMessage,
+  deliverMessages,
+  deliverOutboundPayloads,
+  sendText,
+  parseDeliveryTarget,
+  getAvailableChannels,
+  isChannelAvailable,
+  type DeliveryTarget,
+  type DeliveryPayload,
+  type DeliveryOptions,
+  type DeliveryResult,
+} from "./outbound/index.js";
+
+// Cron (定时任务)
+export {
+  CronService,
+  getCronService,
+  CronStore,
+  createCronExecutor,
+  createDefaultCronExecuteJob,
+  computeNextRunAtMs,
+  computeJobNextRunAtMs,
+  validateCronExpr,
+  formatSchedule,
+  type CronJob,
+  type CronJobCreate,
+  type CronJobUpdate,
+  type CronSchedule,
+  type CronPayload,
+  type PayloadSystemEvent,
+  type PayloadAgentTurn,
+  type CronEvent,
+  type CronExecutionResult,
+  type AgentExecutor,
+} from "./cron/index.js";

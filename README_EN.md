@@ -31,7 +31,7 @@ Mozi is a lightweight AI assistant framework focused on the Chinese ecosystem. I
 - **25 Built-in Tools** — File read/write, Bash execution, code search, web fetch, image analysis, browser automation, memory system, scheduled tasks, etc.
 - **Skills System** — Extend Agent capabilities through SKILL.md files, supporting custom behaviors and domain knowledge injection
 - **Memory System** — Cross-session long-term memory, automatically remembers user preferences and important information
-- **Scheduled Tasks (Cron)** — Supports one-time, periodic, and Cron expression scheduling
+- **Scheduled Tasks (Cron)** — Supports one-time, periodic, and Cron expression scheduling with Agent execution and proactive message delivery
 - **Plugin System** — Extensible plugin architecture with auto-discovery and loading
 - **Browser Automation** — Playwright-based browser control with multi-profile and screenshot support
 - **Session Management** — Context compression, session persistence, multi-turn conversations
@@ -414,7 +414,7 @@ Memories are stored as JSON files, each memory contains content, tags, and times
 
 ## Scheduled Tasks (Cron)
 
-The scheduled task system allows the Agent to execute tasks on schedule, supporting three scheduling methods:
+The scheduled task system allows the Agent to execute tasks on schedule, supporting three scheduling methods and two task types:
 
 ### Schedule Types
 
@@ -423,6 +423,21 @@ The scheduled task system allows the Agent to execute tasks on schedule, support
 | `at` | One-time task | Execute at 2024-01-01 10:00 |
 | `every` | Periodic task | Execute every 30 minutes |
 | `cron` | Cron expression | `0 9 * * *` execute at 9 AM daily |
+
+### Task Types
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `systemEvent` | System event (default) | Simple reminders, trigger signals |
+| `agentTurn` | Agent execution | Execute AI conversation, can deliver results to channels |
+
+`agentTurn` tasks support the following parameters:
+- `message` — Message content for Agent to execute
+- `model` — Specify model to use (optional)
+- `timeoutSeconds` — Execution timeout, 1-600 seconds (optional)
+- `deliver` — Whether to deliver results to communication channel
+- `channel` — Target channel (dingtalk/feishu/qq/wecom)
+- `to` — Target ID (user/group ID)
 
 ### Usage
 
@@ -436,8 +451,40 @@ The Agent can manage scheduled tasks through built-in tools:
 
 Example conversations:
 - "Create a task to remind me to drink water every day at 9 AM"
+- "Create a task to automatically generate a work report and send it to DingTalk at 6 PM every day"
+- "Send a love poem to the Feishu group in 10 minutes"
 - "List all scheduled tasks"
 - "Delete the task named 'water reminder'"
+
+### Proactive Message Delivery
+
+Scheduled tasks support proactively delivering Agent execution results to specified communication channels without users initiating conversations.
+
+**Supported Channels**:
+
+| Channel | Support | Configuration Requirements |
+|---------|---------|---------------------------|
+| DingTalk | ✅ | Requires `robotCode` configuration |
+| Feishu | ✅ | Only basic appId/appSecret needed |
+| QQ | ✅ (limited) | Requires user interaction with bot within 24 hours |
+| WeCom | ✅ | Requires agentId configuration |
+
+**Usage Example**:
+
+```typescript
+// Create agentTurn task via cron_add tool
+{
+  name: "Daily Work Report",
+  scheduleType: "cron",
+  cronExpr: "0 18 * * 1-5",  // 6 PM Monday to Friday
+  message: "Please generate a concise work report based on today's work",
+  payloadType: "agentTurn",
+  deliver: true,
+  channel: "dingtalk",
+  to: "group_id_or_user_id",
+  model: "deepseek-chat"
+}
+```
 
 ### Storage
 
@@ -563,7 +610,8 @@ src/
 ├── skills/        # Skills system (SKILL.md loading, registration)
 ├── sessions/      # Session storage (memory, file)
 ├── memory/        # Memory system
-├── cron/          # Scheduled task system (scheduling, storage, service)
+├── cron/          # Scheduled task system (scheduling, storage, executor)
+├── outbound/      # Proactive message delivery (unified outbound interface)
 ├── plugins/       # Plugin system (discovery, loading, registration)
 ├── browser/       # Browser automation (config, sessions, screenshots)
 ├── web/           # WebChat frontend

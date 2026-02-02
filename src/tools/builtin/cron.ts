@@ -7,7 +7,7 @@
 import { Type } from "@sinclair/typebox";
 import type { Tool, ToolResult } from "../types.js";
 import type { CronService } from "../../cron/service.js";
-import type { CronSchedule, CronJobCreate } from "../../cron/types.js";
+import type { CronSchedule, CronJobCreate, CronPayload } from "../../cron/types.js";
 import { TIME_CONSTANTS } from "../../cron/types.js";
 import { formatSchedule, validateCronExpr } from "../../cron/schedule.js";
 
@@ -87,7 +87,11 @@ function createCronAddTool(service: CronService): Tool {
     description: `添加一个新的定时任务。支持三种调度方式：
 1. at - 一次性任务，在指定时间执行
 2. every - 周期性任务，每隔指定时间执行
-3. cron - Cron 表达式，支持 5 字段或 6 字段格式`,
+3. cron - Cron 表达式，支持 5 字段或 6 字段格式
+
+支持两种任务类型：
+- systemEvent: 简单的系统事件（默认）
+- agentTurn: Agent 执行任务，可以执行 AI 对话并投递结果到指定通道`,
     parameters: Type.Object({
       name: Type.String({ description: "任务名称" }),
       scheduleType: Type.Union([
@@ -123,6 +127,26 @@ function createCronAddTool(service: CronService): Tool {
       message: Type.String({
         description: "任务触发时发送的消息内容",
       }),
+      // agentTurn 任务参数
+      payloadType: Type.Optional(Type.Union([
+        Type.Literal("systemEvent"),
+        Type.Literal("agentTurn"),
+      ], { description: "任务类型: systemEvent(系统事件，默认), agentTurn(Agent执行)" })),
+      deliver: Type.Optional(Type.Boolean({
+        description: "是否投递 Agent 执行结果到通道 (仅 agentTurn 有效)",
+      })),
+      channel: Type.Optional(Type.String({
+        description: "投递目标通道: dingtalk, feishu, qq, wecom (仅 agentTurn 有效)",
+      })),
+      to: Type.Optional(Type.String({
+        description: "投递目标 ID，如用户 ID 或群组 ID (仅 agentTurn 有效)",
+      })),
+      model: Type.Optional(Type.String({
+        description: "指定 Agent 使用的模型 (仅 agentTurn 有效)",
+      })),
+      timeoutSeconds: Type.Optional(Type.Number({
+        description: "Agent 执行超时时间(秒) (仅 agentTurn 有效)",
+      })),
     }),
     execute: async (_toolCallId, args): Promise<ToolResult> => {
       const {
@@ -135,6 +159,12 @@ function createCronAddTool(service: CronService): Tool {
         cronExpr,
         cronTz,
         message,
+        payloadType = "systemEvent",
+        deliver,
+        channel,
+        to,
+        model,
+        timeoutSeconds,
       } = args as {
         name: string;
         scheduleType: "at" | "every" | "cron";
@@ -145,6 +175,12 @@ function createCronAddTool(service: CronService): Tool {
         cronExpr?: string;
         cronTz?: string;
         message: string;
+        payloadType?: "systemEvent" | "agentTurn";
+        deliver?: boolean;
+        channel?: string;
+        to?: string;
+        model?: string;
+        timeoutSeconds?: number;
       };
 
       // 构建调度配置
@@ -209,23 +245,73 @@ function createCronAddTool(service: CronService): Tool {
         }
       }
 
+      // 构建 payload
+      let payload: CronPayload;
+
+      if (payloadType === "agentTurn") {
+        // agentTurn 任务需要 channel 和 to（如果 deliver 为 true）
+        if (deliver && (!channel || !to)) {
+          return {
+            content: [{ type: "text", text: "错误: agentTurn 任务启用 deliver 时需要提供 channel 和 to 参数" }],
+            isError: true,
+          };
+        }
+
+        // 验证通道有效性
+        const validChannels = ["dingtalk", "feishu", "qq", "wecom", "webchat", "last"];
+        if (channel && !validChannels.includes(channel)) {
+          return {
+            content: [{ type: "text", text: `错误: 无效的通道 "${channel}"，支持: ${validChannels.join(", ")}` }],
+            isError: true,
+          };
+        }
+
+        // 验证超时时间范围
+        if (timeoutSeconds !== undefined && (timeoutSeconds < 1 || timeoutSeconds > 600)) {
+          return {
+            content: [{ type: "text", text: "错误: timeoutSeconds 必须在 1-600 秒之间" }],
+            isError: true,
+          };
+        }
+
+        payload = {
+          kind: "agentTurn",
+          message,
+          model,
+          timeoutSeconds,
+          deliver,
+          channel,
+          to,
+        };
+      } else {
+        payload = { kind: "systemEvent", message };
+      }
+
       // 创建任务
       const jobCreate: CronJobCreate = {
         name,
         schedule,
-        payload: { kind: "systemEvent", message },
+        payload,
       };
 
       const job = service.add(jobCreate);
 
+      // 构建返回信息
+      let resultText = `定时任务已创建:
+- ID: ${job.id}
+- 名称: ${job.name}
+- 类型: ${payloadType === "agentTurn" ? "Agent 执行" : "系统事件"}
+- 调度: ${formatSchedule(job.schedule)}
+- 下次执行: ${job.state.nextRunAtMs ? new Date(job.state.nextRunAtMs).toLocaleString("zh-CN") : "未计算"}`;
+
+      if (payloadType === "agentTurn" && deliver) {
+        resultText += `\n- 投递目标: ${channel} -> ${to}`;
+      }
+
       return {
         content: [{
           type: "text",
-          text: `定时任务已创建:
-- ID: ${job.id}
-- 名称: ${job.name}
-- 调度: ${formatSchedule(job.schedule)}
-- 下次执行: ${job.state.nextRunAtMs ? new Date(job.state.nextRunAtMs).toLocaleString("zh-CN") : "未计算"}`,
+          text: resultText,
         }],
       };
     },
