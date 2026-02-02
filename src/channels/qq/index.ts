@@ -107,26 +107,49 @@ export class QQChannel extends BaseChannelAdapter {
 
       // 根据 chatId 前缀判断消息类型
       if (chatId.startsWith("group:")) {
-        // QQ 群消息
+        // QQ 群消息 (v2 API)
         const groupOpenId = chatId.replace("group:", "");
+        this.logger.debug({ groupOpenId, hasReplyToId: !!replyToId }, "Sending group message");
         await this.apiClient.sendGroupMessage(groupOpenId, content, replyToId);
       } else if (chatId.startsWith("c2c:")) {
-        // QQ 私聊消息
+        // QQ 私聊消息 (v2 API)
         const openId = chatId.replace("c2c:", "");
+        this.logger.debug({ openId, hasReplyToId: !!replyToId }, "Sending direct message");
         await this.apiClient.sendDirectMessage(openId, content, replyToId);
       } else if (chatId.startsWith("dms:")) {
         // 频道私信
         const guildId = chatId.replace("dms:", "");
+        this.logger.debug({ guildId, hasReplyToId: !!replyToId }, "Sending DM message");
         await this.apiClient.sendDMMessage(guildId, content, replyToId);
+      } else if (chatId.startsWith("channel:")) {
+        // 频道消息 (明确指定)
+        const channelId = chatId.replace("channel:", "");
+        this.logger.debug({ channelId, hasReplyToId: !!replyToId }, "Sending channel message");
+        await this.apiClient.sendChannelMessage(channelId, content, replyToId);
       } else {
-        // 默认作为频道消息处理
+        // 默认作为频道消息处理 (为了向后兼容)
+        this.logger.debug({ chatId, hasReplyToId: !!replyToId }, "Sending channel message (default)");
         await this.apiClient.sendChannelMessage(chatId, content, replyToId);
       }
 
       return { success: true };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.logger.error({ error, message }, "Failed to send message");
+    } catch (error: unknown) {
+      // 提取详细错误信息
+      let errorMessage = error instanceof Error ? error.message : String(error);
+      let errorCode: number | undefined;
+      let errorDetails: string | undefined;
+
+      // 尝试从 Axios 错误中提取更多信息
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { data?: { code?: number; message?: string }; status?: number } };
+        if (axiosError.response?.data) {
+          errorCode = axiosError.response.data.code;
+          errorDetails = axiosError.response.data.message;
+          errorMessage = `[${errorCode}] ${errorDetails || errorMessage}`;
+        }
+      }
+
+      this.logger.error({ error, chatId: message.chatId, errorCode, errorDetails }, "Failed to send message");
       return { success: false, error: errorMessage };
     }
   }

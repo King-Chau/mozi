@@ -156,16 +156,31 @@ export class QQApiClient {
       msg_type: 0,
     };
 
+    // 如果有 msgId，作为被动消息发送
     if (msgId) {
       data.msg_id = msgId;
     }
 
-    const response = await this.client.post(`/channels/${channelId}/messages`, data, {
-      headers,
-    });
+    try {
+      const response = await this.client.post(`/channels/${channelId}/messages`, data, {
+        headers,
+      });
 
-    logger.debug({ channelId, messageId: response.data.id }, "Channel message sent");
-    return response.data;
+      logger.debug({ channelId, messageId: response.data.id }, "Channel message sent");
+      return response.data;
+    } catch (error: unknown) {
+      // 提取详细错误信息用于调试
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { data?: unknown; status?: number } };
+        logger.error({
+          channelId,
+          status: axiosError.response?.status,
+          responseData: axiosError.response?.data,
+          hasMsgId: !!msgId,
+        }, "Channel message send failed");
+      }
+      throw error;
+    }
   }
 
   /** 发送频道私信 */
