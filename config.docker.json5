@@ -1,11 +1,10 @@
 {
-  // Mozi 配置文件
+  // Docker 最小配置
   providers: {
-    // 使用 claude-code-router 作为 Anthropic 兼容提供商
     "custom-anthropic": {
       id: "custom-anthropic",
       name: "Claude Code Router",
-      baseUrl: "http://localhost:3456/v1",
+      baseUrl: "http://host.docker.internal:3456/v1",
       apiKey: "placeholder",
       apiVersion: "2023-06-01",
       models: [
@@ -19,13 +18,7 @@
       ]
     }
   },
-  // 渠道配置
-  channels: {
-    feishu: {
-      appId: "your-feishu-app-id",
-      appSecret: "your-feishu-app-secret",
-    }
-  },
+  channels: {},
   agent: {
     defaultProvider: "custom-anthropic",
     defaultModel: "claude-opus-4-5",
@@ -36,6 +29,6 @@
     port: 3000
   },
   logging: {
-    level: "debug"
+    level: "info"
   }
 }

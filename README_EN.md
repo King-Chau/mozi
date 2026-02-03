@@ -788,6 +788,98 @@ npm run build
 npm test
 ```
 
+## Docker Deployment
+
+Mozi provides complete Docker deployment support with Dockerfile and Docker Compose configuration.
+
+### Method 1: Docker Compose (Recommended)
+
+```bash
+# Build and start
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop service
+docker compose down
+```
+
+### Method 2: Direct Docker Run
+
+```bash
+# Build image
+docker build -t mozi-bot:latest .
+
+# Run container (WebChat only)
+docker run -d -p 3000:3000 mozi-bot:latest start --web-only
+
+# Run container (full mode, requires environment variables)
+docker run -d -p 3000:3000 \
+  -e DEEPSEEK_API_KEY=sk-xxx \
+  -e FEISHU_APP_ID=xxx \
+  -e FEISHU_APP_SECRET=xxx \
+  -v mozi-data:/home/mozi/.mozi \
+  mozi-bot:latest
+```
+
+### Configuration Options
+
+Docker supports two configuration methods:
+
+1. **Environment Variables** — Configure directly in docker-compose.yml (recommended for quick start)
+2. **Config File Mount** — Mount `config.local.json5` to the container
+
+```yaml
+# docker-compose.yml example
+services:
+  mozi:
+    image: mozi-bot:latest
+    command: ["start", "--web-only"]  # Remove --web-only for full mode
+    ports:
+      - "3000:3000"
+    volumes:
+      - mozi-data:/home/mozi/.mozi
+      # Mount custom config
+      - ./config.local.json5:/app/config.local.json5:ro
+    environment:
+      - PORT=3000
+      - LOG_LEVEL=info
+      # Configure model API Key
+      - DEEPSEEK_API_KEY=sk-xxx
+      # Configure communication platforms (requires removing --web-only)
+      - FEISHU_APP_ID=xxx
+      - FEISHU_APP_SECRET=xxx
+```
+
+### Data Persistence
+
+Data is persisted through Docker volume `mozi-data`, including:
+
+- Logs (`logs/`)
+- Sessions (`sessions/`)
+- Memory (`memory/`)
+- Scheduled Tasks (`cron/`)
+- Skills (`skills/`)
+
+### Health Check
+
+The container has built-in health check, access `http://localhost:3000/health`:
+
+```json
+{"status":"ok","timestamp":"2026-02-03T13:00:00.000Z"}
+```
+
+### Accessing Services
+
+After startup, access via:
+
+| Service | URL |
+|---------|-----|
+| WebChat | http://localhost:3000/ |
+| Console | http://localhost:3000/control |
+| Health Check | http://localhost:3000/health |
+
 ## License
 
 Apache 2.0

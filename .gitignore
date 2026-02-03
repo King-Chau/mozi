@@ -11,3 +11,6 @@ config.local.json5
 config.local.json5.*
 *.bak
 .claude/
+
+# Docker
+.dockerignore

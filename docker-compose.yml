@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  mozi:
+    image: mozi-bot:latest
+    container_name: mozi-bot
+    restart: unless-stopped
+
+    # Build from local Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Command to start (use --web-only for web-only mode, remove it for full mode)
+    command: ["start", "--web-only"]
+
+    # Environment variables
+    environment:
+      # Server configuration
+      - PORT=3000
+      - LOG_LEVEL=info
+
+      # Model API Keys (required at least one)
+      # - DEEPSEEK_API_KEY=your_deepseek_api_key
+      # - MINIMAX_API_KEY=your_minimax_api_key
+      # - MINIMAX_GROUP_ID=your_minimax_group_id
+      # - KIMI_API_KEY=your_kimi_api_key
+      # - STEPFUN_API_KEY=your_stepfun_api_key
+      # - MODELSCOPE_API_KEY=your_modelscope_api_key
+      # - DASHSCOPE_API_KEY=your_dashscope_api_key
+      # - ZHIPU_API_KEY=your_zhipu_api_key
+      # - DOUBAO_API_KEY=your_doubao_api_key
+
+      # Feishu configuration (remove --web-only from command to use)
+      # - FEISHU_APP_ID=your_feishu_app_id
+      # - FEISHU_APP_SECRET=your_feishu_app_secret
+      # - FEISHU_VERIFICATION_TOKEN=your_verification_token
+      # - FEISHU_ENCRYPT_KEY=your_encrypt_key
+
+      # DingTalk configuration (remove --web-only from command to use)
+      # - DINGTALK_APP_KEY=your_dingtalk_app_key
+      # - DINGTALK_APP_SECRET=your_dingtalk_app_secret
+      # - DINGTALK_ROBOT_CODE=your_robot_code
+
+      # QQ bot configuration (remove --web-only from command to use)
+      # - QQ_APP_ID=your_qq_app_id
+      # - QQ_CLIENT_SECRET=your_qq_client_secret
+      # - QQ_SANDBOX=false
+
+      # WeChat Work configuration (remove --web-only from command to use)
+      # - WECOM_CORP_ID=your_wecom_corp_id
+      # - WECOM_CORP_SECRET=your_wecom_corp_secret
+      # - WECOM_AGENT_ID=your_wecom_agent_id
+      # - WECOM_TOKEN=your_wecom_token
+      # - WECOM_ENCODING_AES_KEY=your_wecom_encoding_aes_key
+
+    # Port mapping
+    ports:
+      - "3000:3000"
+
+    # Volume mounts for persistent data and optional config
+    volumes:
+      - mozi-data:/home/mozi/.mozi
+      # Optional: mount custom config file (create config.local.json5 and uncomment)
+      # - ./config.local.json5:/app/config.local.json5:ro
+
+    # Health check
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+# Named volume for persistent data
+volumes:
+  mozi-data:
+    driver: local

@@ -237,7 +237,8 @@ export class Agent {
     let totalUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
     let fallbackAttempts: FallbackAttempt[] | undefined;
 
-    for (let round = 0; round < this.options.maxToolRounds; round++) {
+    // 无限工具调用循环，直到没有工具调用为止
+    while (true) {
       // 调用模型
       const result = await runWithModelFallback({
         provider: this.options.provider,
@@ -301,7 +302,7 @@ export class Agent {
       history.messages.push(assistantMessage);
 
       // 执行工具调用
-      logger.debug({ toolCount: toolCalls.length, round }, "Executing tool calls");
+      logger.debug({ toolCount: toolCalls.length }, "Executing tool calls");
       const toolCallInputs: ToolCall[] = toolCalls.map((tc) => ({
         id: tc.id,
         name: tc.function.name,
@@ -324,7 +325,8 @@ export class Agent {
       }
     }
 
-    throw new Error("Max tool rounds exceeded");
+    // 不应该执行到这里，因为循环只在没有工具调用时才 break
+    throw new Error("Unexpected tool loop termination");
   }
 
   /** 解析工具参数 */
@@ -497,8 +499,8 @@ export class Agent {
     let totalTokens = 0;
     const allToolCalls: ToolCallResult[] = [];
 
-    // 工具调用循环
-    for (let round = 0; round < this.options.maxToolRounds; round++) {
+    // 无限工具调用循环，直到没有工具调用为止
+    while (true) {
       let roundContent = "";
       const pendingToolCalls: Map<string, MessageToolCall> = new Map();
 

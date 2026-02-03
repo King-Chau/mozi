@@ -788,6 +788,98 @@ npm run build
 npm test
 ```
 
+## Docker 部署
+
+Mozi 提供完整的 Docker 部署支持，包含 Dockerfile 和 Docker Compose 配置。
+
+### 方式一：Docker Compose（推荐）
+
+```bash
+# 构建并启动
+docker compose up -d --build
+
+# 查看日志
+docker compose logs -f
+
+# 停止服务
+docker compose down
+```
+
+### 方式二：直接运行 Docker
+
+```bash
+# 构建镜像
+docker build -t mozi-bot:latest .
+
+# 运行容器（仅 WebChat）
+docker run -d -p 3000:3000 mozi-bot:latest start --web-only
+
+# 运行容器（完整模式，需配置环境变量）
+docker run -d -p 3000:3000 \
+  -e DEEPSEEK_API_KEY=sk-xxx \
+  -e FEISHU_APP_ID=xxx \
+  -e FEISHU_APP_SECRET=xxx \
+  -v mozi-data:/home/mozi/.mozi \
+  mozi-bot:latest
+```
+
+### 配置方式
+
+Docker 支持两种配置方式：
+
+1. **环境变量** — 直接在 docker-compose.yml 中配置（推荐快速体验）
+2. **配置文件挂载** — 挂载 `config.local.json5` 到容器
+
+```yaml
+# docker-compose.yml 示例
+services:
+  mozi:
+    image: mozi-bot:latest
+    command: ["start", "--web-only"]  # 移除 --web-only 使用完整模式
+    ports:
+      - "3000:3000"
+    volumes:
+      - mozi-data:/home/mozi/.mozi
+      # 挂载自定义配置
+      - ./config.local.json5:/app/config.local.json5:ro
+    environment:
+      - PORT=3000
+      - LOG_LEVEL=info
+      # 配置模型 API Key
+      - DEEPSEEK_API_KEY=sk-xxx
+      # 配置通讯平台（需移除 --web-only）
+      - FEISHU_APP_ID=xxx
+      - FEISHU_APP_SECRET=xxx
+```
+
+### 数据持久化
+
+数据通过 Docker volume `mozi-data` 持久化，包含：
+
+- 日志 (`logs/`)
+- 会话 (`sessions/`)
+- 记忆 (`memory/`)
+- 定时任务 (`cron/`)
+- Skills (`skills/`)
+
+### 健康检查
+
+容器内置健康检查，访问 `http://localhost:3000/health`：
+
+```json
+{"status":"ok","timestamp":"2026-02-03T13:00:00.000Z"}
+```
+
+### 访问服务
+
+启动后可通过以下地址访问：
+
+| 服务 | 地址 |
+|------|------|
+| WebChat | http://localhost:3000/ |
+| 控制台 | http://localhost:3000/control |
+| 健康检查 | http://localhost:3000/health |
+
 ## License
 
 Apache 2.0
