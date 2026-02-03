@@ -106,3 +106,112 @@ export interface SystemStatus {
   }>;
   sessions: number;
 }
+
+/** 配置信息 */
+export interface ConfigInfo {
+  providers: Record<string, ProviderConfigInfo>;
+  channels: Record<string, ChannelConfigInfo>;
+  agent: AgentConfigInfo;
+  server: ServerConfigInfo;
+  logging: LoggingConfigInfo;
+  memory: MemoryConfigInfo;
+  skills: SkillsConfigInfo;
+}
+
+/** 提供商配置信息（脱敏） */
+export interface ProviderConfigInfo {
+  id: string;
+  name?: string;
+  baseUrl?: string;
+  hasApiKey: boolean;
+  groupId?: string;
+}
+
+/** 通道配置信息（脱敏） */
+export interface ChannelConfigInfo {
+  id: string;
+  name: string;
+  hasConfig: boolean;
+  enabled?: boolean;
+  // 飞书
+  appId?: string;
+  // 钉钉
+  appKey?: string;
+  robotCode?: string;
+  // QQ
+  sandbox?: boolean;
+  // 企业微信
+  corpId?: string;
+  agentId?: number;
+  token?: string;
+  encodingAESKey?: string;
+}
+
+/** Agent 配置信息 */
+export interface AgentConfigInfo {
+  defaultProvider: string;
+  defaultModel: string;
+  temperature?: number;
+  maxTokens?: number;
+  systemPrompt?: string;
+}
+
+/** 服务器配置信息 */
+export interface ServerConfigInfo {
+  port: number;
+  host: string;
+}
+
+/** 日志配置信息 */
+export interface LoggingConfigInfo {
+  level: "debug" | "info" | "warn" | "error";
+}
+
+/** 记忆系统配置信息 */
+export interface MemoryConfigInfo {
+  enabled?: boolean;
+  directory?: string;
+  embeddingModel?: string;
+  embeddingProvider?: string;
+}
+
+/** Skills 配置信息 */
+export interface SkillsConfigInfo {
+  enabled?: boolean;
+  userDir?: string;
+  workspaceDir?: string;
+  disabled?: string[];
+  only?: string[];
+}
+
+/** 保存配置请求参数 */
+export interface ConfigSaveParams {
+  providers?: Record<string, ProviderConfigInfo>;
+  channels?: Record<string, ChannelConfigInfo & {
+    appId?: string;
+    appSecret?: string;
+    appKey?: string;
+    corpId?: string;
+    corpSecret?: string;
+    agentId?: number;
+    token?: string;
+    encodingAESKey?: string;
+    clientSecret?: string;
+    verificationToken?: string;
+    encryptKey?: string;
+    sandbox?: boolean;
+    robotCode?: string;
+  }>;
+  agent?: AgentConfigInfo;
+  server?: ServerConfigInfo;
+  logging?: LoggingConfigInfo;
+  memory?: MemoryConfigInfo;
+  skills?: SkillsConfigInfo;
+}
+
+/** 配置验证结果 */
+export interface ConfigValidateResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}

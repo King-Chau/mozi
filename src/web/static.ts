@@ -570,8 +570,13 @@ function getEmbeddedHtml(config: MoziConfig): string {
     function request(method, params) {
       return new Promise((resolve, reject) => {
         const id = String(++requestId);
+        console.log(\`发送请求: \${method}, id: \${id}, params:\`, params);
         pendingRequests.set(id, { resolve, reject });
-        ws.send(JSON.stringify({ type: 'req', id, method, params }));
+        if (ws?.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'req', id, method, params }));
+        } else {
+          reject(new Error('WebSocket 未连接'));
+        }
       });
     }
 
@@ -908,6 +913,265 @@ function getControlHtml(config: MoziConfig): string {
     .log-entry.warn { color: #fbbf24; }
     .log-entry.error { color: #f87171; }
     .log-entry .time { color: #64748b; }
+    /* 表单样式 */
+    .config-tabs button {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .config-tabs button:hover {
+      color: var(--text);
+      border-bottom-color: var(--border);
+    }
+    .config-tabs button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 500;
+    }
+    .config-content { display: none; }
+    .config-content.active { display: block; }
+    .form-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+    }
+    .form-section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.375rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: var(--bg);
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .checkbox-label input[type="checkbox"] {
+      cursor: pointer;
+    }
+    /* 开关 */
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      margin: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--border);
+      border-radius: 24px;
+      transition: background 0.2s;
+    }
+    .toggle-slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--primary);
+    }
+    .toggle-switch input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+    /* 提供商网格 */
+    .providers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .provider-form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+    .provider-form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .provider-form-header h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .provider-status-badge {
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
+    .provider-status-badge.configured {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .provider-actions button {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+    .provider-actions button:hover {
+      background: var(--border);
+    }
+    .provider-actions button.danger:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .channel-config-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+    .channel-config-card .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .channel-form-fields {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .channel-form-fields input:not([type="checkbox"]) {
+      margin-bottom: 0;
+    }
+    .channel-form-fields .checkbox-label {
+      margin-top: 0.5rem;
+    }
+    /* 保存结果 */
+    .save-result {
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    .save-result.show {
+      display: block;
+    }
+    .save-result.success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .save-result.error {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .save-result.warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal {
+      background: var(--bg-card);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      max-width: 500px;
+      width: 90%;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .modal-header h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .channels-form-grid {
+      display: grid;
+      gap: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -929,6 +1193,10 @@ function getControlHtml(config: MoziConfig): string {
         <span>会话</span>
       </div>
       <div class="nav-section">配置</div>
+      <div class="nav-item" data-view="config">
+        <span class="nav-item-icon">⚙️</span>
+        <span>配置</span>
+      </div>
       <div class="nav-item" data-view="providers">
         <span class="nav-item-icon">🤖</span>
         <span>模型提供商</span>
@@ -1070,6 +1338,198 @@ function getControlHtml(config: MoziConfig): string {
         </div>
       </div>
 
+      <!-- 配置视图 -->
+      <div class="view" id="view-config">
+        <div class="page-header">
+          <h1 class="page-title">配置管理</h1>
+          <p class="page-desc">可视化配置模型提供商、通讯通道和系统设置</p>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="loadConfig()">刷新配置</button>
+          <button class="btn btn-secondary" onclick="saveAllConfig()">保存所有更改</button>
+        </div>
+        <div id="config-tabs" style="display:flex;gap:0.5rem;border-bottom:1px solid var(--border);padding-bottom:0.5rem;margin-bottom:1.5rem;">
+          <button class="config-tab active" data-tab="agent">Agent</button>
+          <button class="config-tab" data-tab="providers">模型提供商</button>
+          <button class="config-tab" data-tab="channels">通讯通道</button>
+          <button class="config-tab" data-tab="server">服务器</button>
+          <button class="config-tab" data-tab="memory">记忆系统</button>
+        </div>
+
+        <!-- Agent 配置 -->
+        <div class="config-content active" id="tab-agent">
+          <div class="form-section">
+            <h3 class="form-section-title">Agent 设置</h3>
+            <div class="form-group">
+              <label>默认提供商</label>
+              <select id="agent-provider" class="form-input">
+                <option value="deepseek">DeepSeek</option>
+                <option value="doubao">豆包</option>
+                <option value="minimax">MiniMax</option>
+                <option value="kimi">Kimi</option>
+                <option value="stepfun">阶跃星辰</option>
+                <option value="modelscope">ModelScope</option>
+                <option value="dashscope">DashScope (Qwen)</option>
+                <option value="zhipu">智谱 AI</option>
+                <option value="openai">OpenAI</option>
+                <option value="ollama">Ollama</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="together">Together AI</option>
+                <option value="groq">Groq</option>
+                <option value="custom-openai">自定义 OpenAI</option>
+                <option value="custom-anthropic">自定义 Anthropic</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>默认模型</label>
+              <input type="text" id="agent-model" class="form-input" placeholder="例如: deepseek-chat" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Temperature</label>
+                <input type="number" id="agent-temperature" class="form-input" step="0.1" min="0" max="2" placeholder="0.7" />
+              </div>
+              <div class="form-group">
+                <label>Max Tokens</label>
+                <input type="number" id="agent-max-tokens" class="form-input" min="1" placeholder="4096" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>系统提示词</label>
+              <textarea id="agent-system-prompt" class="form-input" rows="4" placeholder="自定义系统提示词..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提供商配置 -->
+        <div class="config-content" id="tab-providers">
+          <div class="form-section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <h3 class="form-section-title">模型提供商</h3>
+              <button class="btn btn-secondary" onclick="showAddProviderModal()">+ 添加提供商</button>
+            </div>
+            <div id="providers-list-form" class="providers-grid"></div>
+          </div>
+        </div>
+
+        <!-- 通道配置 -->
+        <div class="config-content" id="tab-channels">
+          <div class="form-section">
+            <h3 class="form-section-title">通讯通道</h3>
+            <div class="channels-form-grid">
+              <div class="channel-config-card">
+                <div class="card-header">
+                  <span class="card-title">飞书</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="feishu-enabled" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="channel-form-fields">
+                  <input type="text" id="feishu-app-id" class="form-input" placeholder="App ID" />
+                  <input type="password" id="feishu-app-secret" class="form-input" placeholder="App Secret" />
+                </div>
+              </div>
+              <div class="channel-config-card">
+                <div class="card-header">
+                  <span class="card-title">钉钉</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="dingtalk-enabled" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="channel-form-fields">
+                  <input type="text" id="dingtalk-app-key" class="form-input" placeholder="App Key" />
+                  <input type="password" id="dingtalk-app-secret" class="form-input" placeholder="App Secret" />
+                  <input type="text" id="dingtalk-robot-code" class="form-input" placeholder="Robot Code (可选)" />
+                </div>
+              </div>
+              <div class="channel-config-card">
+                <div class="card-header">
+                  <span class="card-title">QQ</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="qq-enabled" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="channel-form-fields">
+                  <input type="text" id="qq-app-id" class="form-input" placeholder="App ID" />
+                  <input type="password" id="qq-client-secret" class="form-input" placeholder="Client Secret" />
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="qq-sandbox" />
+                    <span>沙箱环境</span>
+                  </label>
+                </div>
+              </div>
+              <div class="channel-config-card">
+                <div class="card-header">
+                  <span class="card-title">企业微信</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="wecom-enabled" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="channel-form-fields">
+                  <input type="text" id="wecom-corp-id" class="form-input" placeholder="Corp ID" />
+                  <input type="password" id="wecom-corp-secret" class="form-input" placeholder="Corp Secret" />
+                  <input type="number" id="wecom-agent-id" class="form-input" placeholder="Agent ID" />
+                  <input type="text" id="wecom-token" class="form-input" placeholder="Token (可选)" />
+                  <input type="text" id="wecom-encoding-aes-key" class="form-input" placeholder="Encoding AES Key (可选)" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 服务器配置 -->
+        <div class="config-content" id="tab-server">
+          <div class="form-section">
+            <h3 class="form-section-title">服务器设置</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>端口</label>
+                <input type="number" id="server-port" class="form-input" min="1" max="65535" />
+              </div>
+              <div class="form-group">
+                <label>主机</label>
+                <input type="text" id="server-host" class="form-input" placeholder="0.0.0.0" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>日志级别</label>
+              <select id="logging-level" class="form-input">
+                <option value="debug">Debug</option>
+                <option value="info">Info</option>
+                <option value="warn">Warn</option>
+                <option value="error">Error</option>
+              </select>
+            </div>
+            <p class="form-hint">修改服务器端口需要重启服务才能生效</p>
+          </div>
+        </div>
+
+        <!-- 记忆系统配置 -->
+        <div class="config-content" id="tab-memory">
+          <div class="form-section">
+            <h3 class="form-section-title">记忆系统</h3>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="memory-enabled" />
+                <span>启用长期记忆</span>
+              </label>
+              <p class="form-hint">让 Agent 跨会话记住用户偏好和重要信息</p>
+            </div>
+            <div class="form-group">
+              <label>存储目录</label>
+              <input type="text" id="memory-directory" class="form-input" placeholder="~/.mozi/memory" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 保存结果 -->
+        <div id="save-result" class="save-result"></div>
+      </div>
+
       <!-- 日志视图 -->
       <div class="view" id="view-logs">
         <div class="page-header">
@@ -1081,6 +1541,56 @@ function getControlHtml(config: MoziConfig): string {
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- 添加提供商 Modal -->
+  <div class="modal-overlay" id="add-provider-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>添加提供商</h3>
+        <button class="modal-close" onclick="hideAddProviderModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>提供商类型</label>
+        <select id="new-provider-type" class="form-input" onchange="updateProviderModalFields()">
+          <option value="deepseek">DeepSeek</option>
+          <option value="doubao">豆包</option>
+          <option value="minimax">MiniMax</option>
+          <option value="kimi">Kimi</option>
+          <option value="stepfun">阶跃星辰</option>
+          <option value="modelscope">ModelScope</option>
+          <option value="dashscope">DashScope (Qwen)</option>
+          <option value="zhipu">智谱 AI</option>
+          <option value="openai">OpenAI</option>
+          <option value="ollama">Ollama</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="together">Together AI</option>
+          <option value="groq">Groq</option>
+          <option value="custom-openai">自定义 OpenAI</option>
+          <option value="custom-anthropic">自定义 Anthropic</option>
+        </select>
+      </div>
+      <div class="form-group" id="new-provider-base-url-group" style="display:none;">
+        <label>Base URL</label>
+        <input type="text" id="new-provider-base-url" class="form-input" placeholder="例如: https://api.openai.com/v1" />
+      </div>
+      <div class="form-group" id="new-provider-name-group" style="display:none;">
+        <label>显示名称</label>
+        <input type="text" id="new-provider-name" class="form-input" placeholder="例如: My OpenAI" />
+      </div>
+      <div class="form-group" id="new-provider-group-id-group" style="display:none;">
+        <label>Group ID (MiniMax)</label>
+        <input type="text" id="new-provider-group-id" class="form-input" placeholder="Group ID" />
+      </div>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="password" id="new-provider-api-key" class="form-input" placeholder="输入 API Key" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideAddProviderModal()">取消</button>
+        <button class="btn btn-primary" onclick="addProvider()">添加</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1096,6 +1606,11 @@ function getControlHtml(config: MoziConfig): string {
         item.classList.add('active');
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + item.dataset.view).classList.add('active');
+
+        // 切换到配置页面时自动加载配置
+        if (item.dataset.view === 'config' && ws?.readyState === WebSocket.OPEN) {
+          loadConfig();
+        }
       });
     });
 
@@ -1121,12 +1636,20 @@ function getControlHtml(config: MoziConfig): string {
       ws.onmessage = (event) => {
         try {
           const frame = JSON.parse(event.data);
+          console.log('收到 WebSocket 消息:', frame);
           if (frame.type === 'res') {
             const pending = pendingRequests.get(frame.id);
             if (pending) {
               pendingRequests.delete(frame.id);
-              if (frame.ok) pending.resolve(frame.payload);
-              else pending.reject(new Error(frame.error?.message || 'Unknown error'));
+              if (frame.ok) {
+                console.log('请求成功:', frame.id, frame.payload);
+                pending.resolve(frame.payload);
+              } else {
+                console.error('请求失败:', frame.id, frame.error);
+                pending.reject(new Error(frame.error?.message || 'Unknown error'));
+              }
+            } else {
+              console.warn('未找到挂起请求:', frame.id);
             }
           }
         } catch (e) {
@@ -1230,6 +1753,451 @@ function getControlHtml(config: MoziConfig): string {
       while (container.children.length > 100) {
         container.removeChild(container.firstChild);
       }
+    }
+
+    // ===== 配置管理 =====
+    let currentConfig = null;
+    let pendingProviders = {};  // 临时保存提供商数据
+
+    // 配置标签切换
+    document.querySelectorAll('.config-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.config-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // 加载配置
+    async function loadConfig() {
+      try {
+        console.log('开始加载配置...');
+        if (ws?.readyState !== WebSocket.OPEN) {
+          console.warn('WebSocket 未连接，等待连接...');
+          // 等待连接后加载
+          const waitConnection = new Promise(resolve => {
+            const check = () => {
+              if (ws?.readyState === WebSocket.OPEN) {
+                resolve();
+              } else {
+                setTimeout(check, 500);
+              }
+            };
+            check();
+          });
+          await waitConnection;
+        }
+        console.log('发送 config.get 请求...');
+        currentConfig = await request('config.get');
+        console.log('收到配置数据:', currentConfig);
+        populateConfigForm(currentConfig);
+        hideSaveResult();
+        addLog('info', '配置已加载');
+      } catch (e) {
+        console.error('加载配置失败:', e);
+        addLog('error', '加载配置失败: ' + e.message);
+        showSaveResult('error', '加载配置失败: ' + e.message);
+      }
+    }
+
+    // 填充表单
+    function populateConfigForm(config) {
+      console.log('populateConfigForm 调用，配置:', config);
+
+      // Agent 配置
+      if (config.agent) {
+        const providerSelect = document.getElementById('agent-provider');
+        if (providerSelect) {
+          providerSelect.value = config.agent.defaultProvider || 'deepseek';
+          console.log('设置提供商值:', providerSelect.value);
+        }
+        document.getElementById('agent-model').value = config.agent.defaultModel || '';
+        document.getElementById('agent-temperature').value = config.agent.temperature || '';
+        document.getElementById('agent-max-tokens').value = config.agent.maxTokens || '';
+        document.getElementById('agent-system-prompt').value = config.agent.systemPrompt || '';
+      }
+
+      // 提供商列表
+      populateProvidersForm(config.providers);
+
+      // 通道配置
+      if (config.channels) {
+        populateChannelsForm(config.channels);
+      }
+
+      // 服务器配置
+      if (config.server) {
+        document.getElementById('server-port').value = config.server.port || 3000;
+        document.getElementById('server-host').value = config.server.host || '0.0.0.0';
+      }
+
+      // 日志配置
+      if (config.logging) {
+        document.getElementById('logging-level').value = config.logging.level || 'info';
+      }
+
+      // 记忆系统配置
+      if (config.memory) {
+        document.getElementById('memory-enabled').checked = config.memory.enabled !== false;
+        document.getElementById('memory-directory').value = config.memory.directory || '';
+      }
+    }
+
+    // 填充提供商列表
+    function populateProvidersForm(providers) {
+      const container = document.getElementById('providers-list-form');
+      if (!providers || Object.keys(providers).length === 0) {
+        container.innerHTML = '<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--text-muted);">暂无配置的提供商</div>';
+        return;
+      }
+
+      const providerNames = {
+        deepseek: 'DeepSeek', doubao: '豆包', minimax: 'MiniMax', kimi: 'Kimi',
+        stepfun: '阶跃星辰', modelscope: 'ModelScope', dashscope: 'DashScope',
+        zhipu: '智谱 AI', openai: 'OpenAI', ollama: 'Ollama',
+        openrouter: 'OpenRouter', together: 'Together AI', groq: 'Groq',
+        'custom-openai': '自定义 OpenAI', 'custom-anthropic': '自定义 Anthropic'
+      };
+
+      container.innerHTML = Object.entries(providers).map(([id, p]) => \`
+        <div class="provider-form-card" data-provider-id="\${id}">
+          <div class="provider-form-header">
+            <h4>\${p.name || providerNames[id] || id}</h4>
+            <span class="provider-status-badge \${p.hasApiKey ? 'configured' : ''}">
+              \${p.hasApiKey ? '已配置' : '未配置'}
+            </span>
+          </div>
+          <div class="provider-actions">
+            <button onclick="editProvider('\${id}')">编辑</button>
+            <button class="danger" onclick="removeProvider('\${id}')">删除</button>
+          </div>
+        </div>
+      \`).join('');
+    }
+
+    // 填充通道配置
+    function populateChannelsForm(channels) {
+      // 先重置所有通道为未配置状态
+      document.getElementById('feishu-enabled').checked = false;
+      document.getElementById('feishu-app-id').value = '';
+      document.getElementById('feishu-app-secret').value = '';
+
+      document.getElementById('dingtalk-enabled').checked = false;
+      document.getElementById('dingtalk-app-key').value = '';
+      document.getElementById('dingtalk-app-secret').value = '';
+      document.getElementById('dingtalk-robot-code').value = '';
+
+      document.getElementById('qq-enabled').checked = false;
+      document.getElementById('qq-app-id').value = '';
+      document.getElementById('qq-client-secret').value = '';
+      document.getElementById('qq-sandbox').checked = false;
+
+      document.getElementById('wecom-enabled').checked = false;
+      document.getElementById('wecom-corp-id').value = '';
+      document.getElementById('wecom-corp-secret').value = '';
+      document.getElementById('wecom-agent-id').value = '';
+      document.getElementById('wecom-token').value = '';
+      document.getElementById('wecom-encoding-aes-key').value = '';
+
+      // 飞书
+      const feishu = channels.feishu;
+      if (feishu) {
+        console.log('加载飞书配置:', feishu);
+        document.getElementById('feishu-enabled').checked = feishu.enabled !== false;
+        document.getElementById('feishu-app-id').value = feishu.appId || '';
+        // App Secret 不显示，用占位符
+        document.getElementById('feishu-app-secret').value = '';
+      }
+      // 钉钉
+      const dingtalk = channels.dingtalk;
+      if (dingtalk) {
+        console.log('加载钉钉配置:', dingtalk);
+        document.getElementById('dingtalk-enabled').checked = dingtalk.enabled !== false;
+        document.getElementById('dingtalk-app-key').value = dingtalk.appKey || '';
+        document.getElementById('dingtalk-robot-code').value = dingtalk.robotCode || '';
+      }
+      // QQ
+      const qq = channels.qq;
+      if (qq) {
+        console.log('加载 QQ 配置:', qq);
+        document.getElementById('qq-enabled').checked = qq.enabled !== false;
+        document.getElementById('qq-app-id').value = qq.appId || '';
+        document.getElementById('qq-sandbox').checked = qq.sandbox || false;
+      }
+      // 企业微信
+      const wecom = channels.wecom;
+      if (wecom) {
+        console.log('加载企业微信配置:', wecom);
+        document.getElementById('wecom-enabled').checked = wecom.enabled !== false;
+        document.getElementById('wecom-corp-id').value = wecom.corpId || '';
+        document.getElementById('wecom-agent-id').value = wecom.agentId || '';
+        document.getElementById('wecom-token').value = wecom.token || '';
+        document.getElementById('wecom-encoding-aes-key').value = wecom.encodingAESKey || '';
+      }
+    }
+
+    // 显示添加提供商 Modal
+    function showAddProviderModal() {
+      document.getElementById('add-provider-modal').classList.add('show');
+      updateProviderModalFields();
+    }
+
+    // 隐藏添加提供商 Modal
+    function hideAddProviderModal() {
+      document.getElementById('add-provider-modal').classList.remove('show');
+      // 清空表单
+      document.getElementById('new-provider-api-key').value = '';
+      document.getElementById('new-provider-base-url').value = '';
+      document.getElementById('new-provider-name').value = '';
+      document.getElementById('new-provider-group-id').value = '';
+    }
+
+    // 更新提供商 Modal 字段显示
+    function updateProviderModalFields() {
+      const type = document.getElementById('new-provider-type').value;
+      const baseUrlGroup = document.getElementById('new-provider-base-url-group');
+      const nameGroup = document.getElementById('new-provider-name-group');
+      const groupIdGroup = document.getElementById('new-provider-group-id-group');
+
+      baseUrlGroup.style.display = (type === 'custom-openai' || type === 'custom-anthropic') ? 'block' : 'none';
+      nameGroup.style.display = (type === 'custom-openai' || type === 'custom-anthropic') ? 'block' : 'none';
+      groupIdGroup.style.display = type === 'minimax' ? 'block' : 'none';
+    }
+
+    // 添加提供商
+    function addProvider() {
+      const type = document.getElementById('new-provider-type').value;
+      const apiKey = document.getElementById('new-provider-api-key').value.trim();
+      const baseUrl = document.getElementById('new-provider-base-url').value.trim();
+      const name = document.getElementById('new-provider-name').value.trim();
+      const groupId = document.getElementById('new-provider-group-id').value.trim();
+
+      if (!apiKey) {
+        alert('请输入 API Key');
+        return;
+      }
+
+      if ((type === 'custom-openai' || type === 'custom-anthropic') && !baseUrl) {
+        alert('请输入 Base URL');
+        return;
+      }
+
+      // 保存到 pendingProviders
+      pendingProviders[type] = {
+        id: type,
+        name: name || undefined,
+        baseUrl: baseUrl || undefined,
+        groupId: groupId || undefined,
+        hasApiKey: true
+      };
+
+      hideAddProviderModal();
+      // 刷新提供商列表显示
+      if (currentConfig) {
+        const mergedProviders = { ...currentConfig.providers, ...pendingProviders };
+        populateProvidersForm(mergedProviders);
+      }
+
+      showSaveResult('success', '提供商已添加（请点击保存使更改生效）');
+    }
+
+    // 编辑提供商
+    function editProvider(id) {
+      const provider = currentConfig?.providers[id];
+      if (!provider) return;
+
+      const apiKey = prompt('请输入新的 API Key（留空保持不变）:');
+      if (apiKey === null) return;
+
+      if (apiKey) {
+        pendingProviders[id] = {
+          ...provider,
+          hasApiKey: true
+        };
+        showSaveResult('success', '提供商已更新（请点击保存使更改生效）');
+      }
+    }
+
+    // 删除提供商
+    function removeProvider(id) {
+      if (!confirm('确定要删除此提供商吗？')) return;
+
+      pendingProviders[id] = { id: id, hasApiKey: false };
+      const mergedProviders = { ...currentConfig.providers };
+      delete mergedProviders[id];
+      populateProvidersForm(mergedProviders);
+
+      showSaveResult('success', '提供商已删除（请点击保存使更改生效）');
+    }
+
+    // 保存所有配置
+    async function saveAllConfig() {
+      try {
+        hideSaveResult();
+
+        // 构建配置对象
+        const configToSave = {};
+
+        // Agent 配置
+        const agentProvider = document.getElementById('agent-provider').value;
+        const agentModel = document.getElementById('agent-model').value.trim();
+        const agentTemperature = parseFloat(document.getElementById('agent-temperature').value);
+        const agentMaxTokens = parseInt(document.getElementById('agent-max-tokens').value, 10);
+        const agentSystemPrompt = document.getElementById('agent-system-prompt').value.trim();
+
+        if (agentProvider || agentModel || !isNaN(agentTemperature) || !isNaN(agentMaxTokens) || agentSystemPrompt) {
+          configToSave.agent = {
+            defaultProvider: agentProvider || currentConfig?.agent?.defaultProvider,
+            defaultModel: agentModel || currentConfig?.agent?.defaultModel,
+            ...(agentTemperature >= 0 && { temperature: agentTemperature }),
+            ...(agentMaxTokens > 0 && { maxTokens: agentMaxTokens }),
+            ...(agentSystemPrompt && { systemPrompt: agentSystemPrompt })
+          };
+        }
+
+        // 提供商配置
+        if (Object.keys(pendingProviders).length > 0) {
+          configToSave.providers = pendingProviders;
+        }
+
+        // 通道配置
+        const channels = {};
+
+        // 飞书
+        if (document.getElementById('feishu-enabled').checked) {
+          const appId = document.getElementById('feishu-app-id').value.trim();
+          const appSecret = document.getElementById('feishu-app-secret').value.trim();
+          if (appId || appSecret) {
+            channels.feishu = {
+              enabled: true,
+              ...(appId && { appId }),
+              ...(appSecret && { appSecret })
+            };
+          }
+        } else {
+          channels.feishu = { hasConfig: false };
+        }
+
+        // 钉钉
+        if (document.getElementById('dingtalk-enabled').checked) {
+          const appKey = document.getElementById('dingtalk-app-key').value.trim();
+          const appSecret = document.getElementById('dingtalk-app-secret').value.trim();
+          const robotCode = document.getElementById('dingtalk-robot-code').value.trim();
+          if (appKey || appSecret || robotCode) {
+            channels.dingtalk = {
+              enabled: true,
+              ...(appKey && { appKey }),
+              ...(appSecret && { appSecret }),
+              ...(robotCode && { robotCode })
+            };
+          }
+        } else {
+          channels.dingtalk = { hasConfig: false };
+        }
+
+        // QQ
+        if (document.getElementById('qq-enabled').checked) {
+          const appId = document.getElementById('qq-app-id').value.trim();
+          const clientSecret = document.getElementById('qq-client-secret').value.trim();
+          const sandbox = document.getElementById('qq-sandbox').checked;
+          if (appId || clientSecret) {
+            channels.qq = {
+              enabled: true,
+              ...(appId && { appId }),
+              ...(clientSecret && { clientSecret }),
+              ...(sandbox && { sandbox })
+            };
+          }
+        } else {
+          channels.qq = { hasConfig: false };
+        }
+
+        // 企业微信
+        if (document.getElementById('wecom-enabled').checked) {
+          const corpId = document.getElementById('wecom-corp-id').value.trim();
+          const corpSecret = document.getElementById('wecom-corp-secret').value.trim();
+          const agentId = parseInt(document.getElementById('wecom-agent-id').value, 10);
+          const token = document.getElementById('wecom-token').value.trim();
+          const encodingAESKey = document.getElementById('wecom-encoding-aes-key').value.trim();
+          if (corpId || corpSecret || agentId || token || encodingAESKey) {
+            channels.wecom = {
+              enabled: true,
+              ...(corpId && { corpId }),
+              ...(corpSecret && { corpSecret }),
+              ...(agentId && { agentId }),
+              ...(token && { token }),
+              ...(encodingAESKey && { encodingAESKey })
+            };
+          }
+        } else {
+          channels.wecom = { hasConfig: false };
+        }
+
+        if (Object.keys(channels).length > 0) {
+          configToSave.channels = channels;
+        }
+
+        // 服务器配置
+        const serverPort = parseInt(document.getElementById('server-port').value, 10);
+        const serverHost = document.getElementById('server-host').value.trim();
+
+        if (serverPort > 0 && serverPort <= 65535 && serverHost) {
+          configToSave.server = {
+            port: serverPort,
+            host: serverHost
+          };
+        }
+
+        // 日志配置
+        const logLevel = document.getElementById('logging-level').value;
+        configToSave.logging = { level: logLevel };
+
+        // 记忆系统配置
+        const memoryEnabled = document.getElementById('memory-enabled').checked;
+        const memoryDir = document.getElementById('memory-directory').value.trim();
+
+        configToSave.memory = {
+          enabled: memoryEnabled,
+          ...(memoryDir && { directory: memoryDir })
+        };
+
+        // 保存
+        const result = await request('config.save', configToSave);
+
+        if (result.success) {
+          showSaveResult(result.requiresRestart ? 'warning' : 'success', result.message);
+          // 清空 pending
+          pendingProviders = {};
+          // 重新加载配置
+          await loadConfig();
+          addLog('info', result.message);
+        } else {
+          showSaveResult('error', result.message || '保存失败');
+        }
+
+      } catch (e) {
+        addLog('error', '保存配置失败: ' + e.message);
+        showSaveResult('error', '保存配置失败: ' + e.message);
+      }
+    }
+
+    // 显示保存结果
+    function showSaveResult(type, message) {
+      const resultEl = document.getElementById('save-result');
+      resultEl.textContent = message;
+      resultEl.className = 'save-result show ' + type;
+      // 5秒后隐藏
+      setTimeout(() => {
+        hideSaveResult();
+      }, 5000);
+    }
+
+    // 隐藏保存结果
+    function hideSaveResult() {
+      const resultEl = document.getElementById('save-result');
+      resultEl.className = 'save-result';
+      resultEl.textContent = '';
     }
 
     // 启动
