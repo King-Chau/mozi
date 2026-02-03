@@ -472,11 +472,21 @@ export class WsServer {
     };
     for (const [id, config] of Object.entries(this.config.channels)) {
       if (config) {
+        const hasConfig = (
+          // 飞书
+          (id === "feishu" && ((config as any).appId || (config as any).appSecret)) ||
+          // 钉钉
+          (id === "dingtalk" && ((config as any).appKey || (config as any).appSecret || (config as any).robotCode)) ||
+          // QQ
+          (id === "qq" && ((config as any).appId || (config as any).clientSecret)) ||
+          // 企业微信
+          (id === "wecom" && ((config as any).corpId || (config as any).corpSecret || (config as any).agentId || (config as any).token || (config as any).encodingAESKey))
+        );
         const channelConfig: ConfigInfo["channels"][string] = {
           id,
           name: channelNames[id] || id,
-          hasConfig: true,
-          enabled: (config as any).enabled ?? true,
+          hasConfig,
+          enabled: hasConfig && ((config as any).enabled ?? true),
         };
         // 添加非敏感字段用于编辑
         if (id === "feishu") {
@@ -684,9 +694,10 @@ export class WsServer {
           baseUrl: p.baseUrl,
           ...(p.groupId ? { groupId: p.groupId } : {}),
         };
-        // 保留 apiKey（前端不发送，需要从原有配置中获取）
-        if (existing?.apiKey) {
-          (providers[id] as any).apiKey = existing.apiKey;
+        // 优先使用前端发送的 apiKey（新增时），否则保留原有 apiKey
+        const apiKey = (p as any).apiKey || existing?.apiKey;
+        if (apiKey) {
+          (providers[id] as any).apiKey = apiKey;
         }
       }
       configToSave.providers = providers;

@@ -1900,36 +1900,41 @@ function getControlHtml(config: MoziConfig): string {
       document.getElementById('wecom-token').value = '';
       document.getElementById('wecom-encoding-aes-key').value = '';
 
-      // 飞书
+      // 飞书 - 只要有配置就启用
       const feishu = channels.feishu;
       if (feishu) {
         console.log('加载飞书配置:', feishu);
-        document.getElementById('feishu-enabled').checked = feishu.enabled !== false;
+        // 有 appId 就认为是已配置
+        const hasConfig = !!feishu.appId || !!feishu.appSecret;
+        document.getElementById('feishu-enabled').checked = hasConfig && feishu.enabled !== false;
         document.getElementById('feishu-app-id').value = feishu.appId || '';
         // App Secret 不显示，用占位符
         document.getElementById('feishu-app-secret').value = '';
       }
-      // 钉钉
+      // 钉钉 - 只要有配置就启用
       const dingtalk = channels.dingtalk;
       if (dingtalk) {
         console.log('加载钉钉配置:', dingtalk);
-        document.getElementById('dingtalk-enabled').checked = dingtalk.enabled !== false;
+        const hasConfig = !!dingtalk.appKey || !!dingtalk.appSecret || !!dingtalk.robotCode;
+        document.getElementById('dingtalk-enabled').checked = hasConfig && dingtalk.enabled !== false;
         document.getElementById('dingtalk-app-key').value = dingtalk.appKey || '';
         document.getElementById('dingtalk-robot-code').value = dingtalk.robotCode || '';
       }
-      // QQ
+      // QQ - 只要有配置就启用
       const qq = channels.qq;
       if (qq) {
         console.log('加载 QQ 配置:', qq);
-        document.getElementById('qq-enabled').checked = qq.enabled !== false;
+        const hasConfig = !!qq.appId || !!qq.clientSecret;
+        document.getElementById('qq-enabled').checked = hasConfig && qq.enabled !== false;
         document.getElementById('qq-app-id').value = qq.appId || '';
         document.getElementById('qq-sandbox').checked = qq.sandbox || false;
       }
-      // 企业微信
+      // 企业微信 - 只要有配置就启用
       const wecom = channels.wecom;
       if (wecom) {
         console.log('加载企业微信配置:', wecom);
-        document.getElementById('wecom-enabled').checked = wecom.enabled !== false;
+        const hasConfig = !!wecom.corpId || !!wecom.corpSecret || !!wecom.agentId || !!wecom.token || !!wecom.encodingAESKey;
+        document.getElementById('wecom-enabled').checked = hasConfig && wecom.enabled !== false;
         document.getElementById('wecom-corp-id').value = wecom.corpId || '';
         document.getElementById('wecom-agent-id').value = wecom.agentId || '';
         document.getElementById('wecom-token').value = wecom.token || '';
@@ -1983,13 +1988,14 @@ function getControlHtml(config: MoziConfig): string {
         return;
       }
 
-      // 保存到 pendingProviders
+      // 保存到 pendingProviders，包含 apiKey
       pendingProviders[type] = {
         id: type,
         name: name || undefined,
         baseUrl: baseUrl || undefined,
         groupId: groupId || undefined,
-        hasApiKey: true
+        hasApiKey: true,
+        apiKey: apiKey  // 保存 apiKey
       };
 
       hideAddProviderModal();
@@ -2013,7 +2019,8 @@ function getControlHtml(config: MoziConfig): string {
       if (apiKey) {
         pendingProviders[id] = {
           ...provider,
-          hasApiKey: true
+          hasApiKey: true,
+          apiKey: apiKey  // 保存新的 apiKey
         };
         showSaveResult('success', '提供商已更新（请点击保存使更改生效）');
       }
@@ -2042,14 +2049,26 @@ function getControlHtml(config: MoziConfig): string {
         // Agent 配置
         const agentProvider = document.getElementById('agent-provider').value;
         const agentModel = document.getElementById('agent-model').value.trim();
-        const agentTemperature = parseFloat(document.getElementById('agent-temperature').value);
-        const agentMaxTokens = parseInt(document.getElementById('agent-max-tokens').value, 10);
+        const agentTemperatureStr = document.getElementById('agent-temperature').value;
+        const agentMaxTokensStr = document.getElementById('agent-max-tokens').value;
         const agentSystemPrompt = document.getElementById('agent-system-prompt').value.trim();
 
-        if (agentProvider || agentModel || !isNaN(agentTemperature) || !isNaN(agentMaxTokens) || agentSystemPrompt) {
+        // 只要任何字段与当前配置不同，就需要保存
+        const currentAgent = currentConfig && currentConfig.agent ? currentConfig.agent : {};
+        const agentChanged =
+          agentProvider !== (currentAgent.defaultProvider || '') ||
+          agentModel !== (currentAgent.defaultModel || '') ||
+          agentTemperatureStr !== String(currentAgent.temperature || '') ||
+          agentMaxTokensStr !== String(currentAgent.maxTokens || '') ||
+          agentSystemPrompt !== (currentAgent.systemPrompt || '');
+
+        const agentTemperature = parseFloat(agentTemperatureStr);
+        const agentMaxTokens = parseInt(agentMaxTokensStr, 10);
+
+        if (agentChanged || agentModel || agentSystemPrompt || !isNaN(agentTemperature) || !isNaN(agentMaxTokens)) {
           configToSave.agent = {
-            defaultProvider: agentProvider || currentConfig?.agent?.defaultProvider,
-            defaultModel: agentModel || currentConfig?.agent?.defaultModel,
+            defaultProvider: agentProvider || currentAgent.defaultProvider || 'deepseek',
+            defaultModel: agentModel || currentAgent.defaultModel || '',
             ...(agentTemperature >= 0 && { temperature: agentTemperature }),
             ...(agentMaxTokens > 0 && { maxTokens: agentMaxTokens }),
             ...(agentSystemPrompt && { systemPrompt: agentSystemPrompt })
@@ -2061,75 +2080,79 @@ function getControlHtml(config: MoziConfig): string {
           configToSave.providers = pendingProviders;
         }
 
-        // 通道配置
+        // 通道配置 - 始终包含每个通道的配置状态
         const channels = {};
 
-        // 飞书
-        if (document.getElementById('feishu-enabled').checked) {
-          const appId = document.getElementById('feishu-app-id').value.trim();
-          const appSecret = document.getElementById('feishu-app-secret').value.trim();
-          if (appId || appSecret) {
-            channels.feishu = {
-              enabled: true,
-              ...(appId && { appId }),
-              ...(appSecret && { appSecret })
-            };
-          }
+        // 飞书 - 如果填写了 appId 或 appSecret，自动启用
+        const feishuEnabled = document.getElementById('feishu-enabled').checked;
+        const feishuAppId = document.getElementById('feishu-app-id').value.trim();
+        const feishuAppSecret = document.getElementById('feishu-app-secret').value.trim();
+        const feishuHasConfig = feishuEnabled || feishuAppId || feishuAppSecret;
+        if (feishuHasConfig) {
+          channels.feishu = {
+            hasConfig: true,
+            enabled: feishuEnabled || feishuAppId || feishuAppSecret,
+            ...(feishuAppId && { appId: feishuAppId }),
+            ...(feishuAppSecret && { appSecret: feishuAppSecret })
+          };
         } else {
           channels.feishu = { hasConfig: false };
         }
 
-        // 钉钉
-        if (document.getElementById('dingtalk-enabled').checked) {
-          const appKey = document.getElementById('dingtalk-app-key').value.trim();
-          const appSecret = document.getElementById('dingtalk-app-secret').value.trim();
-          const robotCode = document.getElementById('dingtalk-robot-code').value.trim();
-          if (appKey || appSecret || robotCode) {
-            channels.dingtalk = {
-              enabled: true,
-              ...(appKey && { appKey }),
-              ...(appSecret && { appSecret }),
-              ...(robotCode && { robotCode })
-            };
-          }
+        // 钉钉 - 如果填写了任何配置，自动启用
+        const dingtalkEnabled = document.getElementById('dingtalk-enabled').checked;
+        const dingtalkAppKey = document.getElementById('dingtalk-app-key').value.trim();
+        const dingtalkAppSecret = document.getElementById('dingtalk-app-secret').value.trim();
+        const dingtalkRobotCode = document.getElementById('dingtalk-robot-code').value.trim();
+        const dingtalkHasConfig = dingtalkEnabled || dingtalkAppKey || dingtalkAppSecret || dingtalkRobotCode;
+        if (dingtalkHasConfig) {
+          channels.dingtalk = {
+            hasConfig: true,
+            enabled: dingtalkHasConfig,
+            ...(dingtalkAppKey && { appKey: dingtalkAppKey }),
+            ...(dingtalkAppSecret && { appSecret: dingtalkAppSecret }),
+            ...(dingtalkRobotCode && { robotCode: dingtalkRobotCode })
+          };
         } else {
           channels.dingtalk = { hasConfig: false };
         }
 
-        // QQ
-        if (document.getElementById('qq-enabled').checked) {
-          const appId = document.getElementById('qq-app-id').value.trim();
-          const clientSecret = document.getElementById('qq-client-secret').value.trim();
-          const sandbox = document.getElementById('qq-sandbox').checked;
-          if (appId || clientSecret) {
-            channels.qq = {
-              enabled: true,
-              ...(appId && { appId }),
-              ...(clientSecret && { clientSecret }),
-              ...(sandbox && { sandbox })
-            };
-          }
+        // QQ - 如果填写了任何配置，自动启用
+        const qqEnabled = document.getElementById('qq-enabled').checked;
+        const qqAppId = document.getElementById('qq-app-id').value.trim();
+        const qqClientSecret = document.getElementById('qq-client-secret').value.trim();
+        const qqSandbox = document.getElementById('qq-sandbox').checked;
+        const qqHasConfig = qqEnabled || qqAppId || qqClientSecret;
+        if (qqHasConfig) {
+          channels.qq = {
+            hasConfig: true,
+            enabled: qqHasConfig,
+            ...(qqAppId && { appId: qqAppId }),
+            ...(qqClientSecret && { clientSecret: qqClientSecret }),
+            ...(qqSandbox && { sandbox: qqSandbox })
+          };
         } else {
           channels.qq = { hasConfig: false };
         }
 
-        // 企业微信
-        if (document.getElementById('wecom-enabled').checked) {
-          const corpId = document.getElementById('wecom-corp-id').value.trim();
-          const corpSecret = document.getElementById('wecom-corp-secret').value.trim();
-          const agentId = parseInt(document.getElementById('wecom-agent-id').value, 10);
-          const token = document.getElementById('wecom-token').value.trim();
-          const encodingAESKey = document.getElementById('wecom-encoding-aes-key').value.trim();
-          if (corpId || corpSecret || agentId || token || encodingAESKey) {
-            channels.wecom = {
-              enabled: true,
-              ...(corpId && { corpId }),
-              ...(corpSecret && { corpSecret }),
-              ...(agentId && { agentId }),
-              ...(token && { token }),
-              ...(encodingAESKey && { encodingAESKey })
-            };
-          }
+        // 企业微信 - 如果填写了任何配置，自动启用
+        const wecomEnabled = document.getElementById('wecom-enabled').checked;
+        const wecomCorpId = document.getElementById('wecom-corp-id').value.trim();
+        const wecomCorpSecret = document.getElementById('wecom-corp-secret').value.trim();
+        const wecomAgentId = parseInt(document.getElementById('wecom-agent-id').value, 10);
+        const wecomToken = document.getElementById('wecom-token').value.trim();
+        const wecomEncodingAESKey = document.getElementById('wecom-encoding-aes-key').value.trim();
+        const wecomHasConfig = wecomEnabled || wecomCorpId || wecomCorpSecret || wecomAgentId || wecomToken || wecomEncodingAESKey;
+        if (wecomHasConfig) {
+          channels.wecom = {
+            hasConfig: true,
+            enabled: wecomHasConfig,
+            ...(wecomCorpId && { corpId: wecomCorpId }),
+            ...(wecomCorpSecret && { corpSecret: wecomCorpSecret }),
+            ...(wecomAgentId && { agentId: wecomAgentId }),
+            ...(wecomToken && { token: wecomToken }),
+            ...(wecomEncodingAESKey && { encodingAESKey: wecomEncodingAESKey })
+          };
         } else {
           channels.wecom = { hasConfig: false };
         }
@@ -2139,28 +2162,45 @@ function getControlHtml(config: MoziConfig): string {
         }
 
         // 服务器配置
-        const serverPort = parseInt(document.getElementById('server-port').value, 10);
+        const serverPortStr = document.getElementById('server-port').value;
+        const serverPort = parseInt(serverPortStr, 10);
         const serverHost = document.getElementById('server-host').value.trim();
 
-        if (serverPort > 0 && serverPort <= 65535 && serverHost) {
+        // 检查配置是否有变化
+        const currentServer = currentConfig && currentConfig.server ? currentConfig.server : {};
+        const serverChanged =
+          serverPortStr !== String(currentServer.port || '3000') ||
+          serverHost !== (currentServer.host || '0.0.0.0');
+
+        if ((serverPort > 0 && serverPort <= 65535 && serverHost) || serverChanged) {
           configToSave.server = {
-            port: serverPort,
-            host: serverHost
+            port: serverPort > 0 ? serverPort : currentServer.port || 3000,
+            host: serverHost || currentServer.host || '0.0.0.0'
           };
         }
 
         // 日志配置
         const logLevel = document.getElementById('logging-level').value;
-        configToSave.logging = { level: logLevel };
+        const currentLogging = currentConfig && currentConfig.logging ? currentConfig.logging : {};
+        const logLevelChanged = logLevel !== (currentLogging.level || 'info');
+        if (logLevelChanged) {
+          configToSave.logging = { level: logLevel };
+        }
 
         // 记忆系统配置
         const memoryEnabled = document.getElementById('memory-enabled').checked;
         const memoryDir = document.getElementById('memory-directory').value.trim();
+        const currentMemory = currentConfig && currentConfig.memory ? currentConfig.memory : {};
+        const memoryChanged =
+          memoryEnabled !== (currentMemory.enabled || false) ||
+          memoryDir !== (currentMemory.directory || '');
 
-        configToSave.memory = {
-          enabled: memoryEnabled,
-          ...(memoryDir && { directory: memoryDir })
-        };
+        if (memoryChanged) {
+          configToSave.memory = {
+            enabled: memoryEnabled,
+            ...(memoryDir && { directory: memoryDir })
+          };
+        }
 
         // 保存
         const result = await request('config.save', configToSave);
