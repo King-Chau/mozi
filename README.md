@@ -5,151 +5,149 @@
 </p>
 
 <p align="center">
-  中文 | <a href="./README_EN.md">English</a>
+  <a href="./README_CN.md">中文</a> | English
 </p>
 
 <table align="center">
   <tr>
-    <td align="center"><sub>飞书 机器人</sub></td>
-    <td align="center"><sub>QQ 机器人</sub></td>
-    <td align="center"><sub>钉钉机器人</sub></td>
+    <td align="center"><sub>Feishu Bot</sub></td>
+    <td align="center"><sub>QQ Bot</sub></td>
+    <td align="center"><sub>DingTalk Bot</sub></td>
   </tr>
   <tr>
-    <td><img src="./docs/images/feishu.jpg" width="400" alt="飞书 机器人" /></td>
-    <td><img src="./docs/images/qq.jpg" width="400" alt="QQ 机器人" /></td>
-    <td><img src="./docs/images/dingding.jpg" width="400" alt="钉钉机器人" /></td>
+    <td><img src="./docs/images/feishu.jpg" width="400" alt="Feishu Bot" /></td>
+    <td><img src="./docs/images/qq.jpg" width="400" alt="QQ Bot" /></td>
+    <td><img src="./docs/images/dingding.jpg" width="400" alt="DingTalk Bot" /></td>
   </tr>
 </table>
 
-**支持国产大模型和国产通讯软件的智能助手框架**
+**An Intelligent Assistant Framework Supporting Chinese AI Models and Communication Platforms**
 
-Mozi 是一个轻量级的 AI 助手框架，专注于国产生态。它提供统一的接口对接多种国产 AI 模型（DeepSeek、豆包、Qwen、Kimi 等），支持 OpenAI Function Calling，并支持 QQ、飞书、钉钉、企业微信等通讯平台。
+Mozi is a lightweight AI assistant framework focused on the Chinese ecosystem. It provides a unified interface for various Chinese AI models (DeepSeek, Doubao, Qwen, Kimi, etc.), supports OpenAI Function Calling, and integrates with QQ, Feishu, DingTalk, and WeCom platforms.
 
-## 核心特性
+## Core Features
 
-- **多模型支持** — DeepSeek、豆包、DashScope (Qwen)、智谱AI、Kimi、阶跃星辰、MiniMax，以及 OpenAI/Anthropic 兼容格式
-- **多平台通道** — QQ、飞书、钉钉、企业微信，统一的消息处理接口
-- **Function Calling** — 原生支持 OpenAI tools/tool_choice 参数
-- **25 内置工具** — 文件读写、Bash 执行、代码搜索、网页获取、图像分析、浏览器自动化、记忆系统、定时任务等
-- **Skills 技能系统** — 通过 SKILL.md 文件扩展 Agent 能力，支持自定义行为和专业知识注入
-- **记忆系统** — 跨会话长期记忆，自动记住用户偏好和重要信息
-- **定时任务 (Cron)** — 支持一次性、周期性、Cron 表达式三种调度方式，支持 Agent 执行和主动消息投递
-- **插件系统** — 可扩展的插件架构，支持自动发现和加载
-- **浏览器自动化** — 基于 Playwright 的浏览器控制，支持多配置文件和截图
-- **会话管理** — 上下文压缩、会话持久化、多轮对话
-- **可扩展** — 插件系统、Hook 事件、自定义工具、子 Agent
+- **Multi-Model Support** — DeepSeek, Doubao, DashScope (Qwen), Zhipu AI, Kimi, StepFun, MiniMax, plus OpenAI/Anthropic compatible formats
+- **Multi-Platform Channels** — QQ, Feishu, DingTalk, WeCom with unified message handling interface
+- **Function Calling** — Native support for OpenAI tools/tool_choice parameters
+- **25 Built-in Tools** — File read/write, Bash execution, code search, web fetch, image analysis, browser automation, memory system, scheduled tasks, etc.
+- **Skills System** — Extend Agent capabilities through SKILL.md files, supporting custom behaviors and domain knowledge injection
+- **Memory System** — Cross-session long-term memory, automatically remembers user preferences and important information
+- **Scheduled Tasks (Cron)** — Supports one-time, periodic, and Cron expression scheduling with Agent execution and proactive message delivery
+- **Plugin System** — Extensible plugin architecture with auto-discovery and loading
+- **Browser Automation** — Playwright-based browser control with multi-profile and screenshot support
+- **Session Management** — Context compression, session persistence, multi-turn conversations
+- **Extensible** — Plugin system, Hook events, custom tools, Sub-Agents
 
-## 为什么选择 Mozi？
+## Why Mozi?
 
-Mozi 的架构设计参考了 [Moltbot](https://github.com/moltbot/moltbot)，但专注于不同的使用场景：
+Mozi's architecture is inspired by [Moltbot](https://github.com/moltbot/moltbot), but focuses on different use cases:
 
-| 特性 | Mozi | Moltbot |
-|------|------|---------|
-| **定位** | 国产生态优先的轻量框架 | 全功能个人 AI 助手 |
-| **代码量** | ~16,000 行 (64 文件) | ~516,000 行 (3,137 文件) |
-| **国产通讯** | QQ、飞书、钉钉、企业微信原生支持 | WhatsApp、Telegram、Slack 等 |
-| **Node.js 版本** | >= 18 | >= 22 |
-| **适用场景** | 企业内部机器人、国内团队协作 | 个人多设备助手、海外平台集成 |
-| **学习 Agent 原理** | 代码简洁清晰，适合学习 | 代码庞大复杂，学习门槛高 |
+| Feature | Mozi | Moltbot |
+|---------|------|---------|
+| **Focus** | Chinese ecosystem-first lightweight framework | Full-featured personal AI assistant |
+| **Code Size** | ~16,000 lines (64 files) | ~516,000 lines (3,137 files) |
+| **Chinese Platforms** | QQ, Feishu, DingTalk, WeCom native support | WhatsApp, Telegram, Slack, etc. |
+| **Node.js Version** | >= 18 | >= 22 |
+| **Use Cases** | Enterprise internal bots, domestic team collaboration | Personal multi-device assistant, overseas platform integration |
 
-> **Mozi 用 3% 的代码量实现了核心功能**，专注简洁高效，易于理解和二次开发。
-> 适合 [学习 Agent 原理](#学习-agent-原理)，深入了解 AI 助手的架构设计。
+> **Mozi achieves core functionality with 3% of the code**, focusing on simplicity and efficiency, easy to understand and extend.
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Requirements
 
 - Node.js >= 18
 - npm / pnpm / yarn
-- **跨平台支持**：macOS、Linux、Windows
+- **Cross-platform Support**: macOS, Linux, Windows
 
-### 1. 安装
+### 1. Installation
 
 ```bash
-# 全局安装（推荐）
+# Global installation (recommended)
 npm install -g mozi-bot
 
-# 或者克隆项目开发
+# Or clone for development
 git clone https://github.com/King-Chau/mozi.git
 cd mozi && npm install && npm run build
 ```
 
-### 2. 配置
+### 2. Configuration
 
-运行配置向导（推荐）：
+Run the configuration wizard (recommended):
 
 ```bash
 mozi onboard
 ```
 
-向导会引导你完成以下配置：
-- **国产模型** — DeepSeek、豆包、智谱AI、DashScope、Kimi、阶跃星辰、MiniMax、ModelScope
-- **自定义 OpenAI 兼容接口** — 支持任意 OpenAI API 格式的服务（如 vLLM、Ollama）
-- **自定义 Anthropic 兼容接口** — 支持任意 Claude API 格式的服务
-- **通讯平台** — QQ、飞书、钉钉、企业微信
-- **记忆系统** — 启用/禁用长期记忆、自定义存储目录
+The wizard will guide you through:
+- **Chinese Models** — DeepSeek, Doubao, Zhipu AI, DashScope, Kimi, StepFun, MiniMax, ModelScope
+- **Custom OpenAI-Compatible Interface** — Supports any OpenAI API format service (e.g., vLLM, Ollama)
+- **Custom Anthropic-Compatible Interface** — Supports any Claude API format service
+- **Communication Platforms** — QQ, Feishu, DingTalk, WeCom
+- **Memory System** — Enable/disable long-term memory, custom storage directory
 
-配置文件将保存到 `~/.mozi/config.local.json5`。
+Configuration will be saved to `~/.mozi/config.local.json5`.
 
-也可以直接使用环境变量（快速体验）：
+You can also use environment variables (for quick testing):
 
 ```bash
 export DEEPSEEK_API_KEY=sk-your-key
 ```
 
-### 3. 启动
+### 3. Start
 
 ```bash
-# 仅 WebChat（无需配置 QQ/飞书/钉钉）
+# WebChat only (no QQ/Feishu/DingTalk configuration needed)
 mozi start --web-only
 
-# 完整服务（WebChat + QQ + 飞书 + 钉钉）
+# Full service (WebChat + QQ + Feishu + DingTalk)
 mozi start
 
-# 克隆项目方式
+# If cloned from repository
 npm start -- start --web-only
 ```
 
-打开浏览器访问 `http://localhost:3000` 即可开始对话。
+Open your browser and visit `http://localhost:3000` to start chatting.
 
-## 支持的模型提供商
+## Supported Model Providers
 
-### 国产模型
+### Chinese Models
 
-| 提供商 | 环境变量 | 说明 |
-|--------|----------|------|
-| DeepSeek | `DEEPSEEK_API_KEY` | 推理能力强、性价比高 |
-| 豆包 | `DOUBAO_API_KEY` | 字节跳动火山引擎，Seed 深度思考系列，256k 上下文 |
-| DashScope | `DASHSCOPE_API_KEY` | 阿里云灵积，通义千问商业版，稳定高并发 |
-| 智谱 AI | `ZHIPU_API_KEY` | GLM-Z1/GLM-4 系列，清华技术团队，有免费额度 |
-| ModelScope | `MODELSCOPE_API_KEY` | 阿里云魔搭社区，Qwen 开源版，有免费额度 |
-| Kimi | `KIMI_API_KEY` | Kimi K2.5/Moonshot 系列，长上下文支持 |
-| 阶跃星辰 | `STEPFUN_API_KEY` | Step-2/Step-1 系列，推理与多模态 |
-| MiniMax | `MINIMAX_API_KEY` | MiniMax M2.1 系列，推理能力强 |
+| Provider | Environment Variable | Description |
+|----------|---------------------|-------------|
+| DeepSeek | `DEEPSEEK_API_KEY` | Strong reasoning, cost-effective |
+| Doubao | `DOUBAO_API_KEY` | ByteDance Volcano Engine, Seed deep thinking series, 256k context |
+| DashScope | `DASHSCOPE_API_KEY` | Alibaba Cloud, Qwen commercial version, stable high concurrency |
+| Zhipu AI | `ZHIPU_API_KEY` | GLM-Z1/GLM-4 series, Tsinghua tech team, free tier available |
+| ModelScope | `MODELSCOPE_API_KEY` | Alibaba ModelScope community, Qwen open source, free tier available |
+| Kimi | `KIMI_API_KEY` | Kimi K2.5/Moonshot series, long context support |
+| StepFun | `STEPFUN_API_KEY` | Step-2/Step-1 series, reasoning and multimodal |
+| MiniMax | `MINIMAX_API_KEY` | MiniMax M2.1 series, strong reasoning |
 
-### 海外模型
+### International Models
 
-| 提供商 | 环境变量 | 说明 |
-|--------|----------|------|
-| OpenAI | `OPENAI_API_KEY` | GPT-4o、GPT-4、GPT-3.5 |
-| OpenRouter | `OPENROUTER_API_KEY` | 聚合多家模型，统一 API |
-| Together AI | `TOGETHER_API_KEY` | 开源模型托管，Llama、Mixtral 等 |
-| Groq | `GROQ_API_KEY` | 超快推理速度 |
+| Provider | Environment Variable | Description |
+|----------|---------------------|-------------|
+| OpenAI | `OPENAI_API_KEY` | GPT-4o, GPT-4, GPT-3.5 |
+| OpenRouter | `OPENROUTER_API_KEY` | Multi-model aggregation, unified API |
+| Together AI | `TOGETHER_API_KEY` | Open source model hosting, Llama, Mixtral, etc. |
+| Groq | `GROQ_API_KEY` | Ultra-fast inference speed |
 
-### 本地部署
+### Local Deployment
 
-| 提供商 | 环境变量 | 说明 |
-|--------|----------|------|
-| Ollama | `OLLAMA_BASE_URL` | 本地运行开源模型 |
+| Provider | Environment Variable | Description |
+|----------|---------------------|-------------|
+| Ollama | `OLLAMA_BASE_URL` | Run open source models locally |
 
-### 自定义接口
+### Custom Interfaces
 
-支持配置任意 OpenAI 或 Anthropic 兼容的 API 接口。通过 `mozi onboard` 向导配置，或手动添加到配置文件：
+Supports configuring any OpenAI or Anthropic compatible API interface. Configure via `mozi onboard` wizard, or manually add to config file:
 
 ```json5
 {
   providers: {
-    // 自定义 OpenAI 兼容接口（如 vLLM、LiteLLM 等）
+    // Custom OpenAI-compatible interface (e.g., vLLM, LiteLLM)
     "custom-openai": {
       id: "my-provider",
       name: "My Provider",
@@ -167,7 +165,7 @@ npm start -- start --web-only
       ]
     },
 
-    // 自定义 Anthropic 兼容接口
+    // Custom Anthropic-compatible interface
     "custom-anthropic": {
       id: "my-anthropic",
       name: "My Anthropic",
@@ -187,40 +185,40 @@ npm start -- start --web-only
 }
 ```
 
-## 通讯平台接入
+## Communication Platform Integration
 
-QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调模式：
+QQ, Feishu, and DingTalk all support long connection mode, WeCom uses Webhook callback mode:
 
-| 平台 | 连接模式 | 公网 IP | 接入文档 |
-|------|----------|---------|----------|
-| 飞书 | WebSocket 长连接 | 不需要 | [飞书接入指南](./docs/channels/feishu.md) |
-| 钉钉 | Stream 长连接 | 不需要 | [钉钉接入指南](./docs/channels/dingtalk.md) |
-| QQ | WebSocket 长连接 | 不需要 | [QQ 接入指南](./docs/channels/qq.md) |
-| 企业微信 | Webhook 回调 | 需要 | [企业微信接入指南](./docs/channels/wecom.md) |
+| Platform | Connection Mode | Public IP | Documentation |
+|----------|-----------------|-----------|---------------|
+| Feishu | WebSocket long connection | Not required | [Feishu Integration Guide](./docs/channels/feishu.md) |
+| DingTalk | Stream long connection | Not required | [DingTalk Integration Guide](./docs/channels/dingtalk.md) |
+| QQ | WebSocket long connection | Not required | [QQ Integration Guide](./docs/channels/qq.md) |
+| WeCom | Webhook callback | Required | [WeCom Integration Guide](./docs/channels/wecom.md) |
 
-> **长连接模式**：无需公网 IP，无需配置回调地址，启动即可接收消息。
+> **Long Connection Mode**: No public IP needed, no callback URL configuration, start receiving messages immediately.
 
-## 配置参考
+## Configuration Reference
 
-配置文件支持 `config.local.json5`、`config.json5`、`config.yaml` 等格式，优先级从高到低。存放在 `~/.mozi/` 目录下。
+Configuration files support `config.local.json5`, `config.json5`, `config.yaml` formats, with priority from high to low. Stored in the `~/.mozi/` directory.
 
 <details>
-<summary>完整配置示例</summary>
+<summary>Complete Configuration Example</summary>
 
 ```json5
 {
-  // 模型提供商
+  // Model providers
   providers: {
     deepseek: {
       apiKey: "sk-xxx"
     },
     dashscope: {
       apiKey: "sk-xxx",
-      // 可选：自定义模型列表（覆盖预设）
+      // Optional: custom model list (overrides presets)
       models: [
         {
           id: "qwen-max-latest",
-          name: "通义千问 Max",
+          name: "Qwen Max",
           contextWindow: 32768,
           maxTokens: 8192
         }
@@ -234,7 +232,7 @@ QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调
     }
   },
 
-  // 通讯平台（长连接模式，无需公网）
+  // Communication platforms (long connection mode, no public IP needed)
   channels: {
     feishu: {
       appId: "cli_xxx",
@@ -247,7 +245,7 @@ QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调
     qq: {
       appId: "xxx",
       clientSecret: "xxx",
-      sandbox: false  // 沙箱环境设为 true
+      sandbox: false  // Set to true for sandbox environment
     },
     wecom: {
       corpId: "xxx",
@@ -258,66 +256,66 @@ QQ、飞书和钉钉都支持长连接模式，企业微信使用 Webhook 回调
     }
   },
 
-  // Agent 配置
+  // Agent configuration
   agent: {
     defaultProvider: "deepseek",
     defaultModel: "deepseek-chat",
     temperature: 0.7,
     maxTokens: 4096,
-    systemPrompt: "你是墨子，一个智能助手。"
+    systemPrompt: "You are Mozi, an intelligent assistant."
   },
 
-  // 服务器配置
+  // Server configuration
   server: {
     port: 3000,
     host: "0.0.0.0"
   },
 
-  // 日志级别
+  // Log level
   logging: {
     level: "info"  // debug | info | warn | error
   },
 
-  // Skills 配置（可选）
+  // Skills configuration (optional)
   skills: {
-    enabled: true,           // 是否启用技能系统（默认 true）
-    userDir: "~/.mozi/skills",     // 用户级技能目录
-    workspaceDir: "./.mozi/skills", // 工作区级技能目录
-    disabled: ["skill-name"],      // 禁用指定技能
-    only: ["skill-name"]           // 仅启用指定技能
+    enabled: true,           // Enable skills system (default true)
+    userDir: "~/.mozi/skills",     // User-level skills directory
+    workspaceDir: "./.mozi/skills", // Workspace-level skills directory
+    disabled: ["skill-name"],      // Disable specific skills
+    only: ["skill-name"]           // Enable only specific skills
   },
 
-  // 记忆系统配置（可选）
+  // Memory system configuration (optional)
   memory: {
-    enabled: true,                  // 是否启用（默认 true）
-    storageDir: "~/.mozi/memory"   // 存储目录（默认 ~/.mozi/memory）
+    enabled: true,                  // Enable (default true)
+    storageDir: "~/.mozi/memory"   // Storage directory (default ~/.mozi/memory)
   }
 }
 ```
 
 </details>
 
-## Skills 技能系统
+## Skills System
 
-Skills 是 Mozi 的可扩展知识注入系统，通过编写 `SKILL.md` 文件，可以为 Agent 添加专业知识、自定义行为规则或领域能力，无需修改代码。
+Skills is Mozi's extensible knowledge injection system. By writing `SKILL.md` files, you can add professional knowledge, custom behavior rules, or domain capabilities to the Agent without modifying code.
 
-### 工作原理
+### How It Works
 
-Skills 通过 YAML frontmatter + Markdown 内容的方式定义，启动时自动加载并注入到 Agent 的系统提示词中。
+Skills are defined using YAML frontmatter + Markdown content, automatically loaded at startup and injected into the Agent's system prompt.
 
-### 技能加载顺序
+### Skill Loading Order
 
-| 优先级 | 来源 | 目录 | 说明 |
-|--------|------|------|------|
-| 1 | 内置 | `skills/` | 项目自带的技能 |
-| 2 | 用户级 | `~/.mozi/skills/` | 用户自定义技能，所有项目共享 |
-| 3 | 工作区级 | `./.mozi/skills/` | 项目级技能，仅当前项目生效 |
+| Priority | Source | Directory | Description |
+|----------|--------|-----------|-------------|
+| 1 | Built-in | `skills/` | Project built-in skills |
+| 2 | User-level | `~/.mozi/skills/` | User custom skills, shared across projects |
+| 3 | Workspace-level | `./.mozi/skills/` | Project-level skills, only for current project |
 
-> 同名技能按优先级覆盖，工作区级 > 用户级 > 内置。
+> Skills with same name override by priority: Workspace > User > Built-in.
 
-### 编写 Skill
+### Writing Skills
 
-每个技能是一个目录，包含一个 `SKILL.md` 文件：
+Each skill is a directory containing a `SKILL.md` file:
 
 ```
 skills/
@@ -325,13 +323,13 @@ skills/
     └── SKILL.md
 ```
 
-`SKILL.md` 格式：
+`SKILL.md` format:
 
 ```markdown
 ---
 name: greeting
-title: 智能问候
-description: 根据时间和场景提供个性化问候
+title: Smart Greeting
+description: Provides personalized greetings based on time and context
 version: "1.0"
 tags:
   - greeting
@@ -339,174 +337,174 @@ tags:
 priority: 10
 ---
 
-当用户向你打招呼或问候时，请遵循以下规则：
+When users greet you, follow these rules:
 
-1. **根据时间问候**: 根据当前时间使用合适的问候语
-   - 早上 (6:00-11:00): 早上好
-   - 下午 (13:00-18:00): 下午好
-   - 晚上 (18:00-22:00): 晚上好
+1. **Time-based greeting**: Use appropriate greetings based on current time
+   - Morning (6:00-11:00): Good morning
+   - Afternoon (13:00-18:00): Good afternoon
+   - Evening (18:00-22:00): Good evening
 
-2. **友好热情**: 保持友好和积极的态度
+2. **Friendly and warm**: Maintain a friendly and positive attitude
 
-3. **简洁明了**: 问候语简短有力
+3. **Concise**: Keep greetings short and powerful
 ```
 
-### Frontmatter 字段
+### Frontmatter Fields
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `name` | string | 是 | 技能唯一标识 |
-| `title` | string | 否 | 显示名称 |
-| `description` | string | 否 | 技能描述 |
-| `version` | string | 否 | 版本号 |
-| `tags` | string[] | 否 | 标签，用于分类 |
-| `priority` | number | 否 | 优先级，数值越大越靠前（默认 0） |
-| `enabled` | boolean | 否 | 是否启用（默认 true） |
-| `eligibility.os` | string[] | 否 | 限制操作系统（darwin/linux/win32） |
-| `eligibility.binaries` | string[] | 否 | 需要的命令行工具 |
-| `eligibility.env` | string[] | 否 | 需要的环境变量 |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Unique skill identifier |
+| `title` | string | No | Display name |
+| `description` | string | No | Skill description |
+| `version` | string | No | Version number |
+| `tags` | string[] | No | Tags for categorization |
+| `priority` | number | No | Priority, higher values first (default 0) |
+| `enabled` | boolean | No | Whether enabled (default true) |
+| `eligibility.os` | string[] | No | Restrict to OS (darwin/linux/win32) |
+| `eligibility.binaries` | string[] | No | Required CLI tools |
+| `eligibility.env` | string[] | No | Required environment variables |
 
-### Skills 配置
+### Skills Configuration
 
 ```json5
 {
   skills: {
-    enabled: true,             // 是否启用（默认 true）
-    userDir: "~/.mozi/skills", // 用户级技能目录
-    workspaceDir: "./.mozi/skills", // 工作区级技能目录
-    disabled: ["greeting"],    // 禁用指定技能
-    only: ["coding"]           // 仅启用指定技能（白名单模式）
+    enabled: true,             // Enable (default true)
+    userDir: "~/.mozi/skills", // User-level skills directory
+    workspaceDir: "./.mozi/skills", // Workspace-level skills directory
+    disabled: ["greeting"],    // Disable specific skills
+    only: ["coding"]           // Enable only specific skills (whitelist mode)
   }
 }
 ```
 
-## 记忆系统
+## Memory System
 
-记忆系统让 Agent 能够跨会话记住重要信息，如用户偏好、关键事实、任务上下文等。记忆默认启用，存储在 `~/.mozi/memory/` 目录。
+The memory system allows the Agent to remember important information across sessions, such as user preferences, key facts, task context, etc. Memory is enabled by default, stored in `~/.mozi/memory/` directory.
 
-### 工作原理
+### How It Works
 
-Agent 通过三个内置工具管理记忆：
+The Agent manages memory through three built-in tools:
 
-| 工具 | 说明 |
-|------|------|
-| `memory_store` | 存储一条新记忆（包含内容和标签） |
-| `memory_query` | 根据关键词查询相关记忆 |
-| `memory_list` | 列出所有已存储的记忆 |
+| Tool | Description |
+|------|-------------|
+| `memory_store` | Store a new memory (with content and tags) |
+| `memory_query` | Query related memories by keywords |
+| `memory_list` | List all stored memories |
 
-Agent 会在对话中自动判断何时需要存储或查询记忆，无需用户手动触发。例如：
+The Agent automatically determines when to store or query memories during conversation, no manual triggering needed. For example:
 
-- 用户说 "我喜欢简洁的代码风格" → Agent 自动调用 `memory_store` 存储偏好
-- 用户问 "我之前说过喜欢什么风格？" → Agent 自动调用 `memory_query` 查询
+- User says "I prefer concise code style" → Agent automatically calls `memory_store` to save preference
+- User asks "What style did I say I liked?" → Agent automatically calls `memory_query` to search
 
-### 配置
+### Configuration
 
 ```json5
 {
   memory: {
-    enabled: true,                  // 是否启用（默认 true）
-    storageDir: "~/.mozi/memory"   // 存储目录（默认 ~/.mozi/memory）
+    enabled: true,                  // Enable (default true)
+    storageDir: "~/.mozi/memory"   // Storage directory (default ~/.mozi/memory)
   }
 }
 ```
 
-也可以通过 `mozi onboard` 向导配置记忆系统（步骤 5/5）。
+You can also configure memory system via `mozi onboard` wizard (step 5/5).
 
-### 存储结构
+### Storage Structure
 
-记忆以 JSON 文件存储，每条记忆包含内容、标签和时间戳，支持按关键词检索。
+Memories are stored as JSON files, each memory contains content, tags, and timestamp, supporting keyword search.
 
-## 定时任务 (Cron)
+## Scheduled Tasks (Cron)
 
-定时任务系统让 Agent 能够按计划执行任务，支持三种调度方式和两种任务类型：
+The scheduled task system allows the Agent to execute tasks on schedule, supporting three scheduling methods and two task types:
 
-### 调度类型
+### Schedule Types
 
-| 类型 | 说明 | 示例 |
-|------|------|------|
-| `at` | 一次性任务 | 在 2024-01-01 10:00 执行 |
-| `every` | 周期性任务 | 每 30 分钟执行一次 |
-| `cron` | Cron 表达式 | `0 9 * * *` 每天 9 点执行 |
+| Type | Description | Example |
+|------|-------------|---------|
+| `at` | One-time task | Execute at 2024-01-01 10:00 |
+| `every` | Periodic task | Execute every 30 minutes |
+| `cron` | Cron expression | `0 9 * * *` execute at 9 AM daily |
 
-### 任务类型
+### Task Types
 
-| 类型 | 说明 | 用途 |
-|------|------|------|
-| `systemEvent` | 系统事件（默认） | 简单的提醒、触发信号 |
-| `agentTurn` | Agent 执行 | 执行 AI 对话，可投递结果到通道 |
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `systemEvent` | System event (default) | Simple reminders, trigger signals |
+| `agentTurn` | Agent execution | Execute AI conversation, can deliver results to channels |
 
-`agentTurn` 任务支持以下参数：
-- `message` — Agent 执行的消息内容
-- `model` — 指定使用的模型（可选）
-- `timeoutSeconds` — 执行超时时间，1-600 秒（可选）
-- `deliver` — 是否投递结果到通讯通道
-- `channel` — 投递目标通道（dingtalk/feishu/qq/wecom）
-- `to` — 投递目标 ID（用户/群组 ID）
+`agentTurn` tasks support the following parameters:
+- `message` — Message content for Agent to execute
+- `model` — Specify model to use (optional)
+- `timeoutSeconds` — Execution timeout, 1-600 seconds (optional)
+- `deliver` — Whether to deliver results to communication channel
+- `channel` — Target channel (dingtalk/feishu/qq/wecom)
+- `to` — Target ID (user/group ID)
 
-### 使用方式
+### Usage
 
-Agent 可以通过内置工具管理定时任务：
+The Agent can manage scheduled tasks through built-in tools:
 
-- `cron_list` — 列出所有任务
-- `cron_add` — 添加新任务
-- `cron_remove` — 删除任务
-- `cron_run` — 立即执行任务
-- `cron_update` — 更新任务状态
+- `cron_list` — List all tasks
+- `cron_add` — Add new task
+- `cron_remove` — Delete task
+- `cron_run` — Execute task immediately
+- `cron_update` — Update task status
 
-示例对话：
-- "创建一个每天早上 9 点提醒我喝水的任务"
-- "创建一个每天下午 6 点自动生成工作日报并发送到钉钉的任务"
-- "10 分钟后给飞书群发送一首情诗"
-- "列出所有定时任务"
-- "删除名为'喝水提醒'的任务"
+Example conversations:
+- "Create a task to remind me to drink water every day at 9 AM"
+- "Create a task to automatically generate a work report and send it to DingTalk at 6 PM every day"
+- "Send a love poem to the Feishu group in 10 minutes"
+- "List all scheduled tasks"
+- "Delete the task named 'water reminder'"
 
-### 主动消息投递
+### Proactive Message Delivery
 
-定时任务支持将 Agent 执行结果主动投递到指定通讯通道，无需用户主动发起对话。
+Scheduled tasks support proactively delivering Agent execution results to specified communication channels without users initiating conversations.
 
-**支持的通道**：
+**Supported Channels**:
 
-| 通道 | 支持情况 | 配置要求 |
-|------|---------|---------|
-| 钉钉 | ✅ | 需配置 `robotCode` |
-| 飞书 | ✅ | 仅需基本 appId/appSecret |
-| QQ | ✅ (有限制) | 需用户 24 小时内与机器人有互动 |
-| 企业微信 | ✅ | 需配置 agentId |
+| Channel | Support | Configuration Requirements |
+|---------|---------|---------------------------|
+| DingTalk | ✅ | Requires `robotCode` configuration |
+| Feishu | ✅ | Only basic appId/appSecret needed |
+| QQ | ✅ (limited) | Requires user interaction with bot within 24 hours |
+| WeCom | ✅ | Requires agentId configuration |
 
-**使用示例**：
+**Usage Example**:
 
 ```typescript
-// 通过 cron_add 工具创建 agentTurn 任务
+// Create agentTurn task via cron_add tool
 {
-  name: "每日工作日报",
+  name: "Daily Work Report",
   scheduleType: "cron",
-  cronExpr: "0 18 * * 1-5",  // 周一到周五下午 6 点
-  message: "请根据今天的工作内容生成一份简洁的工作日报",
+  cronExpr: "0 18 * * 1-5",  // 6 PM Monday to Friday
+  message: "Please generate a concise work report based on today's work",
   payloadType: "agentTurn",
   deliver: true,
   channel: "dingtalk",
-  to: "群组ID或用户ID",
+  to: "group_id_or_user_id",
   model: "deepseek-chat"
 }
 ```
 
-### 存储
+### Storage
 
-任务数据存储在 `~/.mozi/cron/jobs.json`，支持持久化。
+Task data is stored in `~/.mozi/cron/jobs.json`, supporting persistence.
 
-## 插件系统
+## Plugin System
 
-插件系统允许扩展 Mozi 的功能，支持自动发现和加载。
+The plugin system allows extending Mozi's functionality with auto-discovery and loading support.
 
-### 插件目录
+### Plugin Directories
 
-| 优先级 | 来源 | 目录 | 说明 |
-|--------|------|------|------|
-| 1 | 内置 | `plugins/` | 项目自带插件 |
-| 2 | 全局 | `~/.mozi/plugins/` | 用户安装的全局插件 |
-| 3 | 工作区 | `./.mozi/plugins/` | 项目级插件 |
+| Priority | Source | Directory | Description |
+|----------|--------|-----------|-------------|
+| 1 | Built-in | `plugins/` | Project built-in plugins |
+| 2 | Global | `~/.mozi/plugins/` | User installed global plugins |
+| 3 | Workspace | `./.mozi/plugins/` | Project-level plugins |
 
-### 编写插件
+### Writing Plugins
 
 ```typescript
 import { definePlugin } from "mozi-bot";
@@ -518,7 +516,7 @@ export default definePlugin(
     version: "1.0.0",
   },
   (api) => {
-    // 注册工具
+    // Register tool
     api.registerTool({
       name: "my_tool",
       description: "My custom tool",
@@ -526,7 +524,7 @@ export default definePlugin(
       execute: async () => ({ content: [{ type: "text", text: "Hello!" }] }),
     });
 
-    // 注册 Hook
+    // Register Hook
     api.registerHook("message_received", (ctx) => {
       console.log("Message received:", ctx.content);
     });
@@ -536,102 +534,102 @@ export default definePlugin(
 
 ### PluginApi
 
-| 方法 | 说明 |
-|------|------|
-| `registerTool(tool)` | 注册自定义工具 |
-| `registerTools(tools)` | 批量注册工具 |
-| `registerHook(event, handler)` | 注册事件钩子 |
-| `getConfig()` | 获取插件配置 |
+| Method | Description |
+|--------|-------------|
+| `registerTool(tool)` | Register custom tool |
+| `registerTools(tools)` | Batch register tools |
+| `registerHook(event, handler)` | Register event hook |
+| `getConfig()` | Get plugin configuration |
 
-## 内置工具
+## Built-in Tools
 
-| 类别 | 工具 | 说明 |
-|------|------|------|
-| 文件 | `read_file` | 读取文件内容 |
-| | `write_file` | 写入/创建文件 |
-| | `edit_file` | 精确字符串替换 |
-| | `list_directory` | 列出目录内容 |
-| | `glob` | 按模式搜索文件 |
-| | `grep` | 按内容搜索文件 |
-| | `apply_patch` | 应用 diff 补丁 |
-| 命令 | `bash` | 执行 Bash 命令 |
-| | `process` | 管理后台进程 |
-| 网络 | `web_search` | 网络搜索 |
-| | `web_fetch` | 获取网页内容 |
-| 多媒体 | `image_analyze` | 图像分析（需要视觉模型） |
-| | `browser` | 浏览器自动化（需安装 Playwright） |
-| 系统 | `current_time` | 获取当前时间 |
-| | `calculator` | 数学计算 |
-| | `delay` | 延时等待 |
-| 记忆 | `memory_store` | 存储长期记忆 |
-| | `memory_query` | 查询相关记忆 |
-| | `memory_list` | 列出所有记忆 |
-| 定时任务 | `cron_list` | 列出所有定时任务 |
-| | `cron_add` | 添加定时任务 |
-| | `cron_remove` | 删除定时任务 |
-| | `cron_run` | 立即执行任务 |
-| | `cron_update` | 更新任务状态 |
-| Agent | `subagent` | 创建子 Agent 执行复杂任务 |
+| Category | Tool | Description |
+|----------|------|-------------|
+| File | `read_file` | Read file content |
+| | `write_file` | Write/create file |
+| | `edit_file` | Precise string replacement |
+| | `list_directory` | List directory contents |
+| | `glob` | Search files by pattern |
+| | `grep` | Search files by content |
+| | `apply_patch` | Apply diff patch |
+| Command | `bash` | Execute Bash commands |
+| | `process` | Manage background processes |
+| Network | `web_search` | Web search |
+| | `web_fetch` | Fetch web content |
+| Multimedia | `image_analyze` | Image analysis (requires vision model) |
+| | `browser` | Browser automation (requires Playwright) |
+| System | `current_time` | Get current time |
+| | `calculator` | Math calculations |
+| | `delay` | Delay wait |
+| Memory | `memory_store` | Store long-term memory |
+| | `memory_query` | Query related memories |
+| | `memory_list` | List all memories |
+| Scheduled | `cron_list` | List all scheduled tasks |
+| | `cron_add` | Add scheduled task |
+| | `cron_remove` | Delete scheduled task |
+| | `cron_run` | Execute task immediately |
+| | `cron_update` | Update task status |
+| Agent | `subagent` | Create sub-Agent for complex tasks |
 
-## CLI 命令
+## CLI Commands
 
 ```bash
-# 配置
-mozi onboard            # 配置向导（模型/平台/服务器/Agent/记忆系统）
-mozi check              # 检查配置
-mozi models             # 列出可用模型
+# Configuration
+mozi onboard            # Configuration wizard (models/platforms/server/Agent/memory)
+mozi check              # Check configuration
+mozi models             # List available models
 
-# 启动服务
-mozi start              # 完整服务（含 QQ/飞书/钉钉）
-mozi start --web-only   # 仅 WebChat
-mozi start --port 8080  # 指定端口
+# Start service
+mozi start              # Full service (with QQ/Feishu/DingTalk)
+mozi start --web-only   # WebChat only
+mozi start --port 8080  # Specify port
 
-# 服务管理
-mozi status             # 查看服务状态（进程数、CPU/内存、健康检查）
-mozi restart            # 重启服务（支持 --web-only 等选项）
-mozi kill               # 停止服务（别名：mozi stop）
+# Service management
+mozi status             # View service status (processes, CPU/memory, health check)
+mozi restart            # Restart service (supports --web-only and other options)
+mozi kill               # Stop service (alias: mozi stop)
 
-# 聊天
-mozi chat               # 命令行聊天
+# Chat
+mozi chat               # Command line chat
 
-# 日志
-mozi logs               # 查看最新日志（默认 50 行）
-mozi logs -n 100        # 查看最新 100 行
-mozi logs -f            # 实时跟踪日志（类似 tail -f）
-mozi logs --level error # 只显示错误日志
+# Logs
+mozi logs               # View latest logs (default 50 lines)
+mozi logs -n 100        # View latest 100 lines
+mozi logs -f            # Follow logs in real-time (like tail -f)
+mozi logs --level error # Show only error logs
 ```
 
-> 日志文件存储在 `~/.mozi/logs/` 目录下，按日期自动轮转。
+> Log files are stored in `~/.mozi/logs/` directory, auto-rotated by date.
 
-## 项目结构
+## Project Structure
 
 ```
 src/
-├── agents/        # Agent 核心（消息循环、上下文压缩、会话管理）
-├── channels/      # 通道适配器（QQ、飞书、钉钉、企业微信）
-├── providers/     # 模型提供商（统一接口）
-├── tools/         # 内置工具（文件、Bash、网络、定时任务等）
-├── skills/        # 技能系统（SKILL.md 加载、注册）
-├── sessions/      # 会话存储（内存、文件）
-├── memory/        # 记忆系统
-├── cron/          # 定时任务系统（调度、存储、执行器）
-├── outbound/      # 主动消息投递（统一出站接口）
-├── plugins/       # 插件系统（发现、加载、注册）
-├── browser/       # 浏览器自动化（配置、会话、截图）
-├── web/           # WebChat 前端
-├── config/        # 配置加载
-├── gateway/       # HTTP/WebSocket 网关
-├── cli/           # CLI 命令行工具
-├── hooks/         # Hook 事件系统
-├── utils/         # 工具函数
-└── types/         # TypeScript 类型定义
+├── agents/        # Agent core (message loop, context compression, session management)
+├── channels/      # Channel adapters (QQ, Feishu, DingTalk, WeCom)
+├── providers/     # Model providers (unified interface)
+├── tools/         # Built-in tools (file, Bash, network, scheduled tasks, etc.)
+├── skills/        # Skills system (SKILL.md loading, registration)
+├── sessions/      # Session storage (memory, file)
+├── memory/        # Memory system
+├── cron/          # Scheduled task system (scheduling, storage, executor)
+├── outbound/      # Proactive message delivery (unified outbound interface)
+├── plugins/       # Plugin system (discovery, loading, registration)
+├── browser/       # Browser automation (config, sessions, screenshots)
+├── web/           # WebChat frontend
+├── config/        # Configuration loading
+├── gateway/       # HTTP/WebSocket gateway
+├── cli/           # CLI tool
+├── hooks/         # Hook event system
+├── utils/         # Utility functions
+└── types/         # TypeScript type definitions
 
-skills/            # 内置技能
-└── greeting/      # 智能问候技能示例
+skills/            # Built-in skills
+└── greeting/      # Smart greeting skill example
     └── SKILL.md
 ```
 
-## API 使用
+## API Usage
 
 ```typescript
 import { loadConfig, initializeProviders, getProvider } from "mozi-bot";
@@ -642,72 +640,58 @@ initializeProviders(config);
 const provider = getProvider("deepseek");
 const response = await provider.chat({
   model: "deepseek-chat",
-  messages: [{ role: "user", content: "你好！" }],
+  messages: [{ role: "user", content: "Hello!" }],
 });
 
 console.log(response.content);
 ```
 
-## 学习 Agent 原理
-
-如果你想了解 AI Agent 的工作原理，Mozi 是一个很好的学习项目。相比动辄几十万行代码的大型框架，Mozi 只有约 16,000 行代码，但实现了完整的 Agent 核心功能：
-
-- **消息循环** — 用户输入 → LLM 推理 → 工具调用 → 结果反馈
-- **上下文管理** — 会话历史、Token 压缩、多轮对话
-- **工具系统** — 函数定义、参数校验、结果处理
-- **记忆系统** — 跨会话长期记忆、存储与检索
-- **技能系统** — SKILL.md 加载、知识注入、系统提示词扩展
-- **流式输出** — SSE/WebSocket 实时响应
-- **失败重试** — 模型调用失败自动切换备选模型
-
-代码结构清晰，注释完善，适合阅读源码学习 Agent 架构设计。
-
-### 架构图
+## Architecture Design
 
 ```mermaid
 flowchart TB
-    subgraph Input["📥 输入层"]
-        Feishu["🔵 飞书\nWebSocket 长连接"]
-        Dingtalk["🟢 钉钉\nStream 长连接"]
-        QQ["🟣 QQ\nWebSocket 长连接"]
-        WeCom["🔴 企业微信\nHTTP 回调"]
+    subgraph Input["📥 Input Layer"]
+        Feishu["🔵 Feishu\nWebSocket Long Connection"]
+        Dingtalk["🟢 DingTalk\nStream Long Connection"]
+        QQ["🟣 QQ\nWebSocket Long Connection"]
+        WeCom["🔴 WeCom\nHTTP Callback"]
         WebChat["🟡 WebChat\nHTTP + WebSocket"]
     end
 
-    subgraph Server["🚀 服务层"]
-        Gateway["Gateway 网关\nHTTP/WebSocket 路由"]
+    subgraph Server["🚀 Service Layer"]
+        Gateway["Gateway\nHTTP/WebSocket Routing"]
     end
 
-    subgraph Core["⚙️ 核心层"]
-        Agent["Agent 引擎"]
+    subgraph Core["⚙️ Core Layer"]
+        Agent["Agent Engine"]
 
         subgraph AgentInner[" "]
-            MsgLoop["📨 消息循环\nUser → LLM → Tool → Result"]
-            CtxMgr["📚 上下文管理\n历史压缩 / Token 控制"]
-            Session["💾 会话存储\nMemory / File"]
-            Skills["🎯 Skills 技能\nSKILL.md 知识注入"]
+            MsgLoop["📨 Message Loop\nUser → LLM → Tool → Result"]
+            CtxMgr["📚 Context Management\nHistory Compression / Token Control"]
+            Session["💾 Session Storage\nMemory / File"]
+            Skills["🎯 Skills\nSKILL.md Knowledge Injection"]
         end
     end
 
-    subgraph External["🔗 外部依赖"]
-        subgraph Providers["模型提供商"]
+    subgraph External["🔗 External Dependencies"]
+        subgraph Providers["Model Providers"]
             P1["DeepSeek"]
-            P2["豆包"]
+            P2["Doubao"]
             P3["DashScope"]
-            P4["智谱AI"]
+            P4["Zhipu AI"]
             P5["Kimi"]
             P6["OpenAI"]
             P7["Anthropic"]
         end
 
-        subgraph Tools["工具系统"]
-            T1["📁 文件操作\nread/write/edit/glob/grep"]
-            T2["⌨️ Bash 执行\n命令行 / 进程管理"]
-            T3["🌐 网络请求\nsearch/fetch"]
-            T4["🖼️ 多媒体\n图像分析 / 浏览器"]
-            T5["🧠 记忆系统\n长期记忆存储 / 查询"]
-            T6["🤖 子 Agent\n复杂任务分解"]
-            T7["⏰ 定时任务\nCron 调度 / 周期执行"]
+        subgraph Tools["Tool System"]
+            T1["📁 File Operations\nread/write/edit/glob/grep"]
+            T2["⌨️ Bash Execution\nCLI / Process Management"]
+            T3["🌐 Network Requests\nsearch/fetch"]
+            T4["🖼️ Multimedia\nImage Analysis / Browser"]
+            T5["🧠 Memory System\nLong-term Storage / Query"]
+            T6["🤖 Sub-Agent\nComplex Task Decomposition"]
+            T7["⏰ Scheduled Tasks\nCron Scheduling / Periodic Execution"]
         end
     end
 
@@ -721,33 +705,33 @@ flowchart TB
     MsgLoop <--> CtxMgr
     MsgLoop <--> Session
     MsgLoop <--> Skills
-    MsgLoop <-->|"调用模型"| Providers
-    MsgLoop <-->|"执行工具"| Tools
+    MsgLoop <-->|"Call Model"| Providers
+    MsgLoop <-->|"Execute Tool"| Tools
 ```
 
-### 消息处理流程
+### Message Processing Flow
 
 ```mermaid
 flowchart TD
-    Start([用户发送消息]) --> Channel[Channel 接收]
-    Channel --> Gateway[Gateway 路由]
-    Gateway --> LoadCtx[加载会话上下文]
+    Start([User Sends Message]) --> Channel[Channel Receives]
+    Channel --> Gateway[Gateway Routes]
+    Gateway --> LoadCtx[Load Session Context]
 
-    LoadCtx --> LoadSkills[加载 Skills 技能]
-    LoadSkills --> BuildCtx[构建 LLM 请求]
-    BuildCtx --> |系统提示词 + Skills<br/>历史消息<br/>工具列表| CallLLM[调用 LLM]
+    LoadCtx --> LoadSkills[Load Skills]
+    LoadSkills --> BuildCtx[Build LLM Request]
+    BuildCtx --> |System Prompt + Skills<br/>History Messages<br/>Tool List| CallLLM[Call LLM]
 
-    CallLLM --> Check{返回类型?}
+    CallLLM --> Check{Response Type?}
 
-    Check --> |纯文本| Response[返回响应]
-    Check --> |工具调用| ExecTool[执行工具]
+    Check --> |Text| Response[Return Response]
+    Check --> |Tool Call| ExecTool[Execute Tool]
 
-    ExecTool --> ToolResult[工具返回结果]
-    ToolResult --> |加入上下文| CallLLM
+    ExecTool --> ToolResult[Tool Returns Result]
+    ToolResult --> |Add to Context| CallLLM
 
-    Response --> SaveCtx[保存会话]
-    SaveCtx --> Send[Channel 发送]
-    Send --> End([用户收到回复])
+    Response --> SaveCtx[Save Session]
+    SaveCtx --> Send[Channel Sends]
+    Send --> End([User Receives Reply])
 
     style Start fill:#e1f5fe
     style End fill:#e8f5e9
@@ -756,67 +740,81 @@ flowchart TD
     style LoadSkills fill:#f3e5f5
 ```
 
-### 核心模块
+### Core Modules
 
-| 模块 | 目录 | 职责 |
-|------|------|------|
-| **Agent** | `src/agents/` | 核心消息循环、上下文压缩、会话管理、模型失败重试 |
-| **Providers** | `src/providers/` | 统一的模型调用接口，支持 OpenAI/Anthropic 兼容格式 |
-| **Tools** | `src/tools/` | 工具注册、参数校验、执行引擎，支持自定义扩展 |
-| **Skills** | `src/skills/` | 技能系统，通过 SKILL.md 注入专业知识和自定义行为 |
-| **Channels** | `src/channels/` | 通道适配器，统一消息格式，支持长连接 |
-| **Sessions** | `src/sessions/` | 会话持久化，支持内存/文件存储，Transcript 记录 |
-| **Gateway** | `src/gateway/` | HTTP/WebSocket 服务，路由分发 |
+| Module | Directory | Responsibility |
+|--------|-----------|----------------|
+| **Agent** | `src/agents/` | Core message loop, context compression, session management, model failure retry |
+| **Providers** | `src/providers/` | Unified model calling interface, supports OpenAI/Anthropic compatible formats |
+| **Tools** | `src/tools/` | Tool registration, parameter validation, execution engine, supports custom extensions |
+| **Skills** | `src/skills/` | Skills system, inject professional knowledge and custom behaviors via SKILL.md |
+| **Channels** | `src/channels/` | Channel adapters, unified message format, supports long connections |
+| **Sessions** | `src/sessions/` | Session persistence, supports memory/file storage, Transcript recording |
+| **Gateway** | `src/gateway/` | HTTP/WebSocket service, routing |
 
-### 上下文压缩策略
+### Context Compression Strategy
 
-当对话历史超过 Token 限制时，Mozi 使用智能压缩：
+When conversation history exceeds token limit, Mozi uses intelligent compression:
 
-1. **保留策略** — 始终保留系统提示词和最近 N 轮对话
-2. **摘要压缩** — 将早期对话压缩为摘要，保留关键信息
-3. **工具结果裁剪** — 截断过长的工具返回结果
-4. **配对验证** — 确保 tool_call 和 tool_result 成对出现
+1. **Retention Strategy** — Always retain system prompt and last N rounds of conversation
+2. **Summary Compression** — Compress early conversations into summaries, preserving key information
+3. **Tool Result Trimming** — Truncate overly long tool return results
+4. **Pair Validation** — Ensure tool_call and tool_result appear in pairs
 
-## 开发
+## Learning Agent Principles
+
+If you want to understand how AI Agents work, Mozi is an excellent learning project. Compared to large frameworks with hundreds of thousands of lines of code, Mozi has only about 16,000 lines but implements complete Agent core functionality:
+
+- **Message Loop** — User input → LLM reasoning → Tool calling → Result feedback
+- **Context Management** — Session history, Token compression, multi-turn conversations
+- **Tool System** — Function definition, parameter validation, result handling
+- **Memory System** — Cross-session long-term memory, storage and retrieval
+- **Skills System** — SKILL.md loading, knowledge injection, system prompt extension
+- **Streaming Output** — SSE/WebSocket real-time responses
+- **Failure Retry** — Automatic fallback to alternative models on failure
+
+The code structure is clear with complete comments, suitable for reading source code to learn Agent architecture design.
+
+## Development
 
 ```bash
-# 开发模式（自动重启）
+# Development mode (auto-restart)
 npm run dev -- start --web-only
 
-# 构建
+# Build
 npm run build
 
-# 测试
+# Test
 npm test
 ```
 
-## Docker 部署
+## Docker Deployment
 
-Mozi 提供完整的 Docker 部署支持，包含 Dockerfile 和 Docker Compose 配置。
+Mozi provides complete Docker deployment support with Dockerfile and Docker Compose configuration.
 
-### 方式一：Docker Compose（推荐）
+### Method 1: Docker Compose (Recommended)
 
 ```bash
-# 构建并启动
+# Build and start
 docker compose up -d --build
 
-# 查看日志
+# View logs
 docker compose logs -f
 
-# 停止服务
+# Stop service
 docker compose down
 ```
 
-### 方式二：直接运行 Docker
+### Method 2: Direct Docker Run
 
 ```bash
-# 构建镜像
+# Build image
 docker build -t mozi-bot:latest .
 
-# 运行容器（仅 WebChat）
+# Run container (WebChat only)
 docker run -d -p 3000:3000 mozi-bot:latest start --web-only
 
-# 运行容器（完整模式，需配置环境变量）
+# Run container (full mode, requires environment variables)
 docker run -d -p 3000:3000 \
   -e DEEPSEEK_API_KEY=sk-xxx \
   -e FEISHU_APP_ID=xxx \
@@ -825,62 +823,62 @@ docker run -d -p 3000:3000 \
   mozi-bot:latest
 ```
 
-### 配置方式
+### Configuration Options
 
-Docker 支持两种配置方式：
+Docker supports two configuration methods:
 
-1. **环境变量** — 直接在 docker-compose.yml 中配置（推荐快速体验）
-2. **配置文件挂载** — 挂载 `config.local.json5` 到容器
+1. **Environment Variables** — Configure directly in docker-compose.yml (recommended for quick start)
+2. **Config File Mount** — Mount `config.local.json5` to the container
 
 ```yaml
-# docker-compose.yml 示例
+# docker-compose.yml example
 services:
   mozi:
     image: mozi-bot:latest
-    command: ["start", "--web-only"]  # 移除 --web-only 使用完整模式
+    command: ["start", "--web-only"]  # Remove --web-only for full mode
     ports:
       - "3000:3000"
     volumes:
       - mozi-data:/home/mozi/.mozi
-      # 挂载自定义配置
+      # Mount custom config
       - ./config.local.json5:/app/config.local.json5:ro
     environment:
       - PORT=3000
       - LOG_LEVEL=info
-      # 配置模型 API Key
+      # Configure model API Key
       - DEEPSEEK_API_KEY=sk-xxx
-      # 配置通讯平台（需移除 --web-only）
+      # Configure communication platforms (requires removing --web-only)
       - FEISHU_APP_ID=xxx
       - FEISHU_APP_SECRET=xxx
 ```
 
-### 数据持久化
+### Data Persistence
 
-数据通过 Docker volume `mozi-data` 持久化，包含：
+Data is persisted through Docker volume `mozi-data`, including:
 
-- 日志 (`logs/`)
-- 会话 (`sessions/`)
-- 记忆 (`memory/`)
-- 定时任务 (`cron/`)
+- Logs (`logs/`)
+- Sessions (`sessions/`)
+- Memory (`memory/`)
+- Scheduled Tasks (`cron/`)
 - Skills (`skills/`)
 
-### 健康检查
+### Health Check
 
-容器内置健康检查，访问 `http://localhost:3000/health`：
+The container has built-in health check, access `http://localhost:3000/health`:
 
 ```json
 {"status":"ok","timestamp":"2026-02-03T13:00:00.000Z"}
 ```
 
-### 访问服务
+### Accessing Services
 
-启动后可通过以下地址访问：
+After startup, access via:
 
-| 服务 | 地址 |
-|------|------|
+| Service | URL |
+|---------|-----|
 | WebChat | http://localhost:3000/ |
-| 控制台 | http://localhost:3000/control |
-| 健康检查 | http://localhost:3000/health |
+| Console | http://localhost:3000/control |
+| Health Check | http://localhost:3000/health |
 
 ## License
 
