@@ -2,7 +2,7 @@
  * Memory 系统测试
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as os from "os";
 import * as path from "path";
 import * as fs from "fs";
@@ -30,26 +30,23 @@ import {
   type MemoryEntry,
 } from "../src/memory/index.js";
 
+// 每个测试使用独立的临时目录
+const getTestDir = () =>
+  path.join(
+    os.tmpdir(),
+    `mozi-test-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  );
+
 describe("memory/index", () => {
-  const testDir = path.join(os.tmpdir(), `mozi-test-${Date.now()}`);
-
   beforeEach(() => {
-    // 确保测试目录存在
-    if (!fs.existsSync(testDir)) {
-      fs.mkdirSync(testDir, { recursive: true });
-    }
-  });
-
-  afterEach(() => {
-    // 清理测试目录
-    if (fs.existsSync(testDir)) {
-      fs.rmSync(testDir, { recursive: true, force: true });
-    }
+    vi.resetModules();
   });
 
   describe("JsonMemoryStore", () => {
     it("should create store and add entries", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
 
       const id = await store.add({
         content: "Test memory content",
@@ -64,7 +61,9 @@ describe("memory/index", () => {
     });
 
     it("should retrieve entry by id", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
 
       const id = await store.add({
         content: "Retrievable content",
@@ -83,13 +82,17 @@ describe("memory/index", () => {
     });
 
     it("should return undefined for non-existent id", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
       const entry = await store.get("non-existent-id");
       expect(entry).toBeUndefined();
     });
 
     it("should delete entry", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
 
       const id = await store.add({
         content: "To be deleted",
@@ -104,14 +107,19 @@ describe("memory/index", () => {
     });
 
     it("should return false when deleting non-existent entry", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
       const deleted = await store.delete("non-existent");
       expect(deleted).toBe(false);
     });
 
     it("should list entries with filtering", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
 
+      // Add 3 entries
       await store.add({
         content: "Fact 1",
         metadata: { type: "fact", timestamp: Date.now(), tags: ["tag1"] },
@@ -127,7 +135,7 @@ describe("memory/index", () => {
         metadata: { type: "fact", timestamp: Date.now(), tags: ["tag1", "tag2"] },
       });
 
-      // List all
+      // List all - should be exactly 3
       const all = await store.list();
       expect(all.length).toBe(3);
 
@@ -144,7 +152,9 @@ describe("memory/index", () => {
     });
 
     it("should search entries by content similarity", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
 
       await store.add({
         content: "The weather is sunny today",
@@ -168,7 +178,9 @@ describe("memory/index", () => {
     });
 
     it("should clear all entries", async () => {
-      const store = new JsonMemoryStore(testDir);
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+      const store = new JsonMemoryStore({ directory: testDir });
 
       await store.add({
         content: "Entry 1",
@@ -188,17 +200,25 @@ describe("memory/index", () => {
   });
 
   describe("MemoryManager", () => {
-    it("should create manager with default config", () => {
+    it("should create manager with default config", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir });
       expect(manager).toBeDefined();
+      await manager.close();
     });
 
-    it("should use createMemoryManager factory", () => {
+    it("should use createMemoryManager factory", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = createMemoryManager({ directory: testDir });
       expect(manager).toBeDefined();
+      await manager.close();
     });
 
     it("should remember and recall content", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: true });
 
       const id = await manager.remember("Important fact to remember", {
@@ -210,9 +230,12 @@ describe("memory/index", () => {
 
       const results = await manager.recall("important fact", 5);
       expect(results.length).toBeGreaterThan(0);
+      await manager.close();
     });
 
     it("should get memory by id", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: true });
 
       const id = await manager.remember("Specific memory", { type: "note" });
@@ -220,9 +243,12 @@ describe("memory/index", () => {
       const entry = await manager.get(id!);
       expect(entry).toBeDefined();
       expect(entry?.content).toBe("Specific memory");
+      await manager.close();
     });
 
     it("should forget memory by id", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: true });
 
       const id = await manager.remember("To forget", { type: "note" });
@@ -232,9 +258,12 @@ describe("memory/index", () => {
 
       const entry = await manager.get(id!);
       expect(entry).toBeUndefined();
+      await manager.close();
     });
 
     it("should list memories with filter", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: true });
 
       await manager.remember("Code snippet", { type: "code" });
@@ -243,9 +272,12 @@ describe("memory/index", () => {
       const code = await manager.list({ type: "code" });
       expect(code.length).toBe(1);
       expect(code[0]?.metadata.type).toBe("code");
+      await manager.close();
     });
 
     it("should return empty results when disabled", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: false });
 
       const id = await manager.remember("This won't be saved", { type: "note" });
@@ -253,9 +285,12 @@ describe("memory/index", () => {
 
       const results = await manager.recall("anything", 5);
       expect(results).toEqual([]);
+      await manager.close();
     });
 
     it("should format memories for context", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: true });
 
       const entries: MemoryEntry[] = [
@@ -278,26 +313,33 @@ describe("memory/index", () => {
       expect(formatted).toContain("First memory");
       expect(formatted).toContain("Second memory");
       expect(formatted).toContain("95%"); // score formatted
+      await manager.close();
     });
 
     it("should return empty string for empty entries", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
       const manager = new MemoryManager({ directory: testDir, enabled: true });
       const formatted = manager.formatForContext([]);
       expect(formatted).toBe("");
+      await manager.close();
     });
   });
 
   describe("Memory persistence", () => {
     it("should persist entries across store instances", async () => {
+      const testDir = getTestDir();
+      fs.mkdirSync(testDir, { recursive: true });
+
       // Create first store and add entry
-      const store1 = new JsonMemoryStore(testDir);
+      const store1 = new JsonMemoryStore({ directory: testDir });
       const id = await store1.add({
         content: "Persistent content",
         metadata: { type: "note", timestamp: Date.now() },
       });
 
       // Create second store instance
-      const store2 = new JsonMemoryStore(testDir);
+      const store2 = new JsonMemoryStore({ directory: testDir });
       const entry = await store2.get(id);
 
       expect(entry).toBeDefined();
