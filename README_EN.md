@@ -1,5 +1,3 @@
-# Mozi (墨子)
-
 <p align="center">
   <img src="./docs/images/mascot.svg" width="80" alt="Mozi Mascot" />
 </p>
@@ -23,7 +21,7 @@
 
 **An Intelligent Assistant Framework Supporting Chinese AI Models and Communication Platforms**
 
-Mozi is a lightweight AI assistant framework focused on the Chinese ecosystem. It provides a unified interface for various Chinese AI models (DeepSeek, Doubao, Qwen, Kimi, etc.), supports OpenAI Function Calling, and integrates with QQ, Feishu, DingTalk, and WeCom platforms.
+OpenMozi is a lightweight AI assistant framework focused on the Chinese ecosystem. It provides a unified interface for various Chinese AI models (DeepSeek, Doubao, Qwen, Kimi, etc.), supports OpenAI Function Calling, and integrates with QQ, Feishu, DingTalk, and WeCom platforms.
 
 ## Core Features
 
@@ -39,11 +37,11 @@ Mozi is a lightweight AI assistant framework focused on the Chinese ecosystem. I
 - **Session Management** — Context compression, session persistence, multi-turn conversations
 - **Extensible** — Plugin system, Hook events, custom tools, Sub-Agents
 
-## Why Mozi?
+## Why OpenMozi?
 
-Mozi's architecture is inspired by [Moltbot](https://github.com/moltbot/moltbot), but focuses on different use cases:
+OpenMozi's architecture is inspired by [Moltbot](https://github.com/moltbot/moltbot), but focuses on different use cases:
 
-| Feature | Mozi | Moltbot |
+| Feature | OpenMozi | Moltbot |
 |---------|------|---------|
 | **Focus** | Chinese ecosystem-first lightweight framework | Full-featured personal AI assistant |
 | **Code Size** | ~16,000 lines (64 files) | ~516,000 lines (3,137 files) |
@@ -51,7 +49,7 @@ Mozi's architecture is inspired by [Moltbot](https://github.com/moltbot/moltbot)
 | **Node.js Version** | >= 18 | >= 22 |
 | **Use Cases** | Enterprise internal bots, domestic team collaboration | Personal multi-device assistant, overseas platform integration |
 
-> **Mozi achieves core functionality with 3% of the code**, focusing on simplicity and efficiency, easy to understand and extend.
+> **OpenMozi achieves core functionality with 3% of the code**, focusing on simplicity and efficiency, easy to understand and extend.
 
 ## Quick Start
 
@@ -297,7 +295,7 @@ Configuration files support `config.local.json5`, `config.json5`, `config.yaml` 
 
 ## Skills System
 
-Skills is Mozi's extensible knowledge injection system. By writing `SKILL.md` files, you can add professional knowledge, custom behavior rules, or domain capabilities to the Agent without modifying code.
+Skills is OpenMozi's extensible knowledge injection system. By writing `SKILL.md` files, you can add professional knowledge, custom behavior rules, or domain capabilities to the Agent without modifying code.
 
 ### How It Works
 
@@ -648,7 +646,7 @@ console.log(response.content);
 
 ## Learning Agent Principles
 
-If you want to understand how AI Agents work, Mozi is an excellent learning project. Compared to large frameworks with hundreds of thousands of lines of code, Mozi has only about 16,000 lines but implements complete Agent core functionality.
+If you want to understand how AI Agents work, OpenMozi is an excellent learning project. Compared to large frameworks with hundreds of thousands of lines of code, Mozi has only about 16,000 lines but implements complete Agent core functionality.
 
 ### Architecture Design
 
@@ -758,7 +756,7 @@ flowchart TD
 
 ### Context Compression Strategy
 
-When conversation history exceeds token limit, Mozi uses intelligent compression:
+When conversation history exceeds token limit, OpenMozi uses intelligent compression:
 
 1. **Retention Strategy** — Always retain system prompt and last N rounds of conversation
 2. **Summary Compression** — Compress early conversations into summaries, preserving key information
@@ -792,7 +790,7 @@ npm test
 
 ## Docker Deployment
 
-Mozi provides complete Docker deployment support with Dockerfile and Docker Compose configuration.
+OpenMozi provides complete Docker deployment support with Dockerfile and Docker Compose configuration.
 
 ### Method 1: Docker Compose (Recommended)
 
