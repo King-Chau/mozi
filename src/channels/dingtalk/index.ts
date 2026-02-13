@@ -211,6 +211,14 @@ export class DingtalkChannel extends BaseChannelAdapter {
     res.json({ msgtype: "empty" });
   }
 
+  /** 根据入站上下文回复（优先使用 session webhook） */
+  override async replyToContext(
+    context: InboundMessageContext & { sessionWebhook?: string },
+    text: string
+  ): Promise<SendResult> {
+    return this.replyWithSession(context, text);
+  }
+
   /** 使用 Session Webhook 回复 */
   async replyWithSession(
     context: InboundMessageContext & { sessionWebhook?: string },

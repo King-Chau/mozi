@@ -212,6 +212,9 @@ function getEmbeddedHtml(config: MoziConfig): string {
     .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-icon { background: transparent !important; color: var(--text-secondary) !important; padding: 0.5rem !important; }
     .btn-icon:hover { color: var(--text) !important; background: var(--bg) !important; }
+    .cancel-btn { background: var(--border) !important; color: var(--text) !important; }
+    .cancel-btn:hover { background: var(--text-secondary) !important; color: white !important; }
+    .cancelled-hint { color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.875rem; }
     .welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1rem; color: var(--text-secondary); }
     .welcome-icon { font-size: 4rem; }
     .welcome h2 { color: var(--text); font-size: 1.5rem; }
@@ -302,8 +305,9 @@ function getEmbeddedHtml(config: MoziConfig): string {
         </div>
       </div>
       <div class="input-area">
-        <textarea id="input" placeholder="输入消息... (Enter 发送, Shift+Enter 换行)" rows="1"></textarea>
+        <textarea id="input" placeholder="输入消息... (Enter 发送, Shift+Enter 换行, Esc 取消)" rows="1"></textarea>
         <button class="btn-icon" id="clearBtn" title="清除对话">🗑️</button>
+        <button id="cancelBtn" class="cancel-btn" title="取消本次请求" style="display: none;">取消</button>
         <button id="sendBtn"><span>发送</span><span>↵</span></button>
       </div>
     </main>
@@ -333,6 +337,7 @@ function getEmbeddedHtml(config: MoziConfig): string {
     const welcomeEl = document.getElementById('welcome');
     const inputEl = document.getElementById('input');
     const sendBtn = document.getElementById('sendBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
     const clearBtn = document.getElementById('clearBtn');
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
@@ -551,6 +556,8 @@ function getEmbeddedHtml(config: MoziConfig): string {
           isStreaming = true;
           currentStreamContent = '';
           addMessage('assistant', '', true);
+          sendBtn.style.display = 'none';
+          cancelBtn.style.display = '';
         }
         if (payload.delta) {
           currentStreamContent += payload.delta;
@@ -558,11 +565,22 @@ function getEmbeddedHtml(config: MoziConfig): string {
         }
         if (payload.done) {
           isStreaming = false;
+          sendBtn.style.display = '';
+          cancelBtn.style.display = 'none';
+          if (payload.cancelled && currentStreamContent.trim()) {
+            const msgEl = document.getElementById('streaming-message');
+            if (msgEl) {
+              const contentEl = msgEl.querySelector('.message-content');
+              if (contentEl) contentEl.innerHTML += '<p class="cancelled-hint"><em>（已取消）</em></p>';
+            }
+          }
           finalizeStreamingMessage();
           loadSessionList();
         }
       } else if (event === 'chat.error') {
         isStreaming = false;
+        sendBtn.style.display = '';
+        cancelBtn.style.display = 'none';
         addMessage('assistant', '❌ 错误: ' + payload.error);
       }
     }
@@ -622,6 +640,21 @@ function getEmbeddedHtml(config: MoziConfig): string {
       return div.innerHTML;
     }
 
+    function cancelRequest() {
+      if (!isStreaming) return;
+      request('chat.cancel').catch(() => {});
+      isStreaming = false;
+      sendBtn.style.display = '';
+      cancelBtn.style.display = 'none';
+      const msgEl = document.getElementById('streaming-message');
+      if (msgEl && currentStreamContent.trim()) {
+        const contentEl = msgEl.querySelector('.message-content');
+        if (contentEl) contentEl.innerHTML += '<p class="cancelled-hint"><em>（已取消）</em></p>';
+      }
+      finalizeStreamingMessage();
+      loadSessionList();
+    }
+
     async function sendMessage() {
       const message = inputEl.value.trim();
       if (!message || isStreaming) return;
@@ -652,10 +685,15 @@ function getEmbeddedHtml(config: MoziConfig): string {
     }
 
     sendBtn.addEventListener('click', sendMessage);
+    cancelBtn.addEventListener('click', cancelRequest);
     clearBtn.addEventListener('click', clearChat);
     inputEl.addEventListener('input', autoResize);
     inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); cancelRequest(); return; }
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isStreaming) { e.preventDefault(); cancelRequest(); }
     });
 
     connect();

@@ -291,27 +291,28 @@ function loadConfigFromEnv(): Partial<MoziConfig> {
   return config;
 }
 
-/** 深度合并配置 */
+/**
+ * 一层深度合并：对每个顶层 key 做 object 浅合并（后传入的 config 同名字段覆盖前面的），便于多环境配置叠加。
+ */
 function mergeConfigs(...configs: Partial<MoziConfig>[]): Partial<MoziConfig> {
   const result: Partial<MoziConfig> = {};
 
   for (const config of configs) {
-    // 合并 providers
     if (config.providers) {
       result.providers = { ...result.providers, ...config.providers };
     }
 
-    // 合并 channels
     if (config.channels) {
+      const c = config.channels;
+      const r = result.channels;
       result.channels = {
-        feishu: config.channels.feishu ?? result.channels?.feishu,
-        dingtalk: config.channels.dingtalk ?? result.channels?.dingtalk,
-        qq: config.channels.qq ?? result.channels?.qq,
-        wecom: config.channels.wecom ?? result.channels?.wecom,
+        feishu: c.feishu != null ? { ...r?.feishu, ...c.feishu } : r?.feishu,
+        dingtalk: c.dingtalk != null ? { ...r?.dingtalk, ...c.dingtalk } : r?.dingtalk,
+        qq: c.qq != null ? { ...r?.qq, ...c.qq } : r?.qq,
+        wecom: c.wecom != null ? { ...r?.wecom, ...c.wecom } : r?.wecom,
       };
     }
 
-    // 合并其他配置
     if (config.agent) {
       result.agent = { ...result.agent, ...config.agent };
     }

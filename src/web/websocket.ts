@@ -41,6 +41,8 @@ interface WsClient {
   sessionKey: string | null;  // null 表示尚未绑定 session
   sessionId: string | null;
   lastPing: number;
+  /** 当前聊天请求的 AbortController，用于取消 */
+  currentAbortController: AbortController | null;
 }
 
 /** WebSocket 服务选项 */
@@ -96,6 +98,7 @@ export class WsServer {
       sessionKey: null,
       sessionId: null,
       lastPing: Date.now(),
+      currentAbortController: null,
     };
 
     this.clients.set(clientId, client);
@@ -151,6 +154,9 @@ export class WsServer {
       switch (method) {
         case "chat.send":
           result = await this.handleChatSend(client, params as ChatSendParams);
+          break;
+        case "chat.cancel":
+          result = this.handleChatCancel(client);
           break;
         case "chat.clear":
           result = await this.handleChatClear(client);
@@ -259,9 +265,11 @@ export class WsServer {
       timestamp: Date.now(),
     };
 
-    // 流式处理
+    const controller = new AbortController();
+    client.currentAbortController = controller;
+
     try {
-      const stream = this.agent.processMessageStream(context);
+      const stream = this.agent.processMessageStream(context, { signal: controller.signal });
       let fullContent = "";
 
       for await (const delta of stream) {
@@ -273,6 +281,8 @@ export class WsServer {
         } as ChatDeltaEvent);
       }
 
+      client.currentAbortController = null;
+
       // 保存助手消息到 transcript
       const assistantMessage: TranscriptMessage = {
         id: generateId("msg"),
@@ -282,21 +292,43 @@ export class WsServer {
       };
       await store.appendTranscript(client.sessionId!, client.sessionKey!, assistantMessage);
 
-      // 发送完成事件
       this.sendEvent(client.ws, "chat.delta", {
         sessionId: client.sessionId,
         delta: "",
         done: true,
       } as ChatDeltaEvent);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.sendEvent(client.ws, "chat.error", {
-        sessionId: client.sessionId,
-        error: errorMessage,
-      });
+      client.currentAbortController = null;
+      const isAborted =
+        error instanceof Error &&
+        (error.name === "AbortError" || error.message === "Aborted" || (error as { code?: string }).code === "ABORT_ERR");
+      if (isAborted) {
+        this.sendEvent(client.ws, "chat.delta", {
+          sessionId: client.sessionId,
+          delta: "",
+          done: true,
+          cancelled: true,
+        } as ChatDeltaEvent);
+      } else {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.sendEvent(client.ws, "chat.error", {
+          sessionId: client.sessionId,
+          error: errorMessage,
+        });
+      }
     }
 
     return { messageId };
+  }
+
+  /** 取消当前客户端的聊天请求 */
+  private handleChatCancel(client: WsClient): { cancelled: boolean } {
+    if (client.currentAbortController) {
+      client.currentAbortController.abort();
+      client.currentAbortController = null;
+      return { cancelled: true };
+    }
+    return { cancelled: false };
   }
 
   /** 处理清除会话 */

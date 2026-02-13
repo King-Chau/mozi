@@ -79,6 +79,8 @@ export interface ChatDeltaEvent {
   sessionId: string;
   delta: string;
   done: boolean;
+  /** 是否为用户取消 */
+  cancelled?: boolean;
 }
 
 /** 会话信息 */

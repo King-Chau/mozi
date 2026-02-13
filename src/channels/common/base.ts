@@ -32,6 +32,11 @@ export interface ChannelAdapter {
   /** 发送文本消息 */
   sendText(chatId: string, text: string, replyToId?: string): Promise<SendResult>;
 
+  /**
+   * 根据入站消息上下文回复（由 Gateway 统一调用，通道可覆盖以实现会话级回复等）
+   */
+  replyToContext(context: InboundMessageContext, text: string): Promise<SendResult>;
+
   /** 检查通道状态 */
   isHealthy(): Promise<boolean>;
 }
@@ -65,5 +70,11 @@ export abstract class BaseChannelAdapter implements ChannelAdapter {
   abstract shutdown(): Promise<void>;
   abstract sendMessage(message: OutboundMessage): Promise<SendResult>;
   abstract sendText(chatId: string, text: string, replyToId?: string): Promise<SendResult>;
+
+  /** 默认实现：使用 chatId 与 messageId 调用 sendText */
+  async replyToContext(context: InboundMessageContext, text: string): Promise<SendResult> {
+    return this.sendText(context.chatId, text, context.messageId);
+  }
+
   abstract isHealthy(): Promise<boolean>;
 }

@@ -4,12 +4,13 @@
 
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { createServer, type Server as HttpServer } from "http";
+import NodeCache from "node-cache";
 import type { MoziConfig, InboundMessageContext } from "../types/index.js";
 import { createFeishuChannel, type FeishuChannel } from "../channels/feishu/index.js";
 import { createDingtalkChannel, type DingtalkChannel } from "../channels/dingtalk/index.js";
 import { createQQChannel, type QQChannel } from "../channels/qq/index.js";
 import { createWeComChannel, type WeComChannel } from "../channels/wecom/index.js";
-import { registerChannel } from "../channels/common/index.js";
+import { registerChannel, getChannel } from "../channels/common/index.js";
 import { createAgent, type Agent } from "../agents/agent.js";
 import { initializeProviders } from "../providers/index.js";
 import { getChildLogger, setLogger, createLogger } from "../utils/logger.js";
@@ -28,15 +29,22 @@ export class Gateway {
   private qqChannel?: QQChannel;
   private wecomChannel?: WeComChannel;
   private wsServer?: WsServer;
-  /** 已处理的消息 ID 缓存（用于去重） */
-  private processedMessages = new Map<string, number>();
-  /** 消息缓存过期时间 (5分钟) */
-  private readonly MESSAGE_CACHE_TTL = 5 * 60 * 1000;
+  /** 已处理的消息 ID 缓存（用于去重，带 TTL 与最大条数） */
+  private processedMessages: NodeCache;
+  /** 消息缓存过期时间 (秒，5 分钟) */
+  private readonly MESSAGE_CACHE_TTL_SEC = 300;
+  /** 消息去重缓存最大条数 */
+  private readonly MESSAGE_CACHE_MAX_KEYS = 10000;
 
   constructor(config: MoziConfig) {
     this.config = config;
     this.app = express();
     this.httpServer = createServer(this.app);
+    this.processedMessages = new NodeCache({
+      stdTTL: this.MESSAGE_CACHE_TTL_SEC,
+      maxKeys: this.MESSAGE_CACHE_MAX_KEYS,
+      useClones: false,
+    });
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -167,55 +175,26 @@ export class Gateway {
     }
   }
 
-  /** 发送回复 */
+  /** 发送回复（通过通道注册表，由各通道自行实现 replyToContext） */
   private async sendReply(context: InboundMessageContext, text: string): Promise<void> {
-    switch (context.channelId) {
-      case "feishu":
-        if (this.feishuChannel) {
-          await this.feishuChannel.sendText(context.chatId, text, context.messageId);
-        }
-        break;
-
-      case "dingtalk":
-        if (this.dingtalkChannel) {
-          // 尝试使用 session webhook 回复
-          const dingtalkContext = context as InboundMessageContext & { sessionWebhook?: string };
-          await this.dingtalkChannel.replyWithSession(dingtalkContext, text);
-        }
-        break;
-
-      case "qq":
-        if (this.qqChannel) {
-          await this.qqChannel.sendText(context.chatId, text, context.messageId);
-        }
-        break;
-
-      case "wecom":
-        if (this.wecomChannel) {
-          await this.wecomChannel.sendText(context.chatId, text);
-        }
-        break;
+    const channel = getChannel(context.channelId);
+    if (!channel) {
+      logger.warn({ channelId: context.channelId }, "No channel registered for reply");
+      return;
+    }
+    try {
+      await channel.replyToContext(context, text);
+    } catch (error) {
+      logger.error({ error, channelId: context.channelId, chatId: context.chatId }, "Failed to send reply");
     }
   }
 
-  /** 检查是否为重复消息 */
+  /** 检查是否为重复消息（使用带容量上限的缓存，自动过期） */
   private isDuplicateMessage(messageId: string): boolean {
-    const now = Date.now();
-
-    // 清理过期的消息缓存
-    for (const [id, timestamp] of this.processedMessages) {
-      if (now - timestamp > this.MESSAGE_CACHE_TTL) {
-        this.processedMessages.delete(id);
-      }
-    }
-
-    // 检查消息是否已处理
     if (this.processedMessages.has(messageId)) {
       return true;
     }
-
-    // 标记为已处理
-    this.processedMessages.set(messageId, now);
+    this.processedMessages.set(messageId, 1);
     return false;
   }
 

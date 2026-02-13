@@ -301,25 +301,10 @@ export class Agent {
       currentMessages.push(assistantMessage);
       history.messages.push(assistantMessage);
 
-      // 执行工具调用
-      logger.debug({ toolCount: toolCalls.length }, "Executing tool calls");
-      const toolCallInputs: ToolCall[] = toolCalls.map((tc) => ({
-        id: tc.id,
-        name: tc.function.name,
-        arguments: this.parseToolArguments(tc.function.arguments),
-      }));
-
-      const toolResults = await executeToolCalls(toolCallInputs);
+      // 执行工具调用（并行）并追加 tool 消息
+      const { toolResults, toolMessages } = await this.runToolRoundAndBuildMessages(toolCalls);
       allToolCalls.push(...toolResults);
-
-      // 添加 tool 消息 (每个工具调用一个)
-      for (const tr of toolResults) {
-        const toolMessage: ChatMessage = {
-          role: "tool",
-          content: this.formatToolResult(tr),
-          tool_call_id: tr.toolCallId,
-          name: tr.name,
-        };
+      for (const toolMessage of toolMessages) {
         currentMessages.push(toolMessage);
         history.messages.push(toolMessage);
       }
@@ -327,6 +312,29 @@ export class Agent {
 
     // 不应该执行到这里，因为循环只在没有工具调用时才 break
     throw new Error("Unexpected tool loop termination");
+  }
+
+  /**
+   * 执行单轮工具调用并生成要追加的 tool 消息（非流式/流式共用，工具并行执行）
+   */
+  private async runToolRoundAndBuildMessages(
+    toolCalls: MessageToolCall[],
+    signal?: AbortSignal
+  ): Promise<{ toolResults: ToolCallResult[]; toolMessages: ChatMessage[] }> {
+    const toolCallInputs: ToolCall[] = toolCalls.map((tc) => ({
+      id: tc.id,
+      name: tc.function.name,
+      arguments: this.parseToolArguments(tc.function.arguments),
+    }));
+    logger.debug({ toolCount: toolCalls.length }, "Executing tool calls (parallel)");
+    const toolResults = await executeToolCalls(toolCallInputs, { parallel: true, signal });
+    const toolMessages: ChatMessage[] = toolResults.map((tr) => ({
+      role: "tool" as const,
+      content: this.formatToolResult(tr),
+      tool_call_id: tr.toolCallId,
+      name: tr.name,
+    }));
+    return { toolResults, toolMessages };
   }
 
   /** 解析工具参数 */
@@ -462,10 +470,13 @@ export class Agent {
     return firstLine.length > 50 ? firstLine.slice(0, 50) + "…" : firstLine;
   }
 
-  /** 流式处理消息 (支持原生 function calling) */
+  /** 流式处理消息 (支持原生 function calling，可选 signal 取消) */
   async *processMessageStream(
-    context: InboundMessageContext
+    context: InboundMessageContext,
+    options?: { signal?: AbortSignal }
   ): AsyncGenerator<string, AgentResponse, unknown> {
+    const signal = options?.signal;
+
     const sessionKey = this.getSessionKey(context);
     logger.debug({ sessionKey, content: context.content.slice(0, 100) }, "Processing message (stream)");
 
@@ -501,6 +512,10 @@ export class Agent {
 
     // 无限工具调用循环，直到没有工具调用为止
     while (true) {
+      if (signal?.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+
       let roundContent = "";
       const pendingToolCalls: Map<string, MessageToolCall> = new Map();
 
@@ -519,6 +534,9 @@ export class Agent {
 
       // 流式调用
       for await (const chunk of provider.chatStream(request)) {
+        if (signal?.aborted) {
+          throw new DOMException("Aborted", "AbortError");
+        }
         // 处理文本内容
         if (chunk.delta) {
           roundContent += chunk.delta;
@@ -584,29 +602,24 @@ export class Agent {
       currentMessages.push(assistantMessage);
       history.messages.push(assistantMessage);
 
-      // 执行工具调用
-      const toolCallInputs: ToolCall[] = completedToolCalls.map((tc) => ({
+      // 执行工具调用（并行）并追加 tool 消息
+      const { toolResults, toolMessages } = await this.runToolRoundAndBuildMessages(completedToolCalls, signal);
+      allToolCalls.push(...toolResults);
+
+      const toolCallInputs = completedToolCalls.map((tc) => ({
         id: tc.id,
         name: tc.function.name,
         arguments: this.parseToolArguments(tc.function.arguments),
       }));
 
-      const toolResults = await executeToolCalls(toolCallInputs);
-      allToolCalls.push(...toolResults);
-
-      // 添加 tool 消息并输出结果摘要 (Claude Code 风格)
-      for (const tr of toolResults) {
-        const toolMessage: ChatMessage = {
-          role: "tool",
-          content: this.formatToolResult(tr),
-          tool_call_id: tr.toolCallId,
-          name: tr.name,
-        };
+      for (let i = 0; i < toolResults.length; i++) {
+        const tr = toolResults[i]!;
+        const toolMessage = toolMessages[i]!;
         currentMessages.push(toolMessage);
         history.messages.push(toolMessage);
 
-        // 简洁的工具输出格式
-        const argsPreview = this.getToolArgsPreview(toolCallInputs.find(t => t.id === tr.toolCallId)?.arguments);
+        // 简洁的工具输出格式 (Claude Code 风格)
+        const argsPreview = this.getToolArgsPreview(toolCallInputs.find((t) => t.id === tr.toolCallId)?.arguments);
         if (tr.isError) {
           const errorMsg = this.getErrorPreview(tr);
           yield `\n⏺ ${tr.name}(${argsPreview}) ✗ ${errorMsg}`;
